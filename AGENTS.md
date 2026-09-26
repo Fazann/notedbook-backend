@@ -171,8 +171,8 @@ Rules:
 - Unit test pure logic (services with fake repos, helpers, i18n). Use table-driven tests.
 - Tests must not need a real database, Redis or S3, and must not depend on translated wording — compare
   against the catalog or check behavior (see `pkg/i18n/i18n_test.go`).
-- Packages that import `config` load `.env` from the working directory and exit if it is missing; keep
-  such imports out of code under test, or inject values instead.
+- Packages that import `config` load `.env` from the working directory if it exists (tests run from the
+  package folder, so they see only real env vars). Prefer injecting values over reading `config` in logic under test.
 
 ## Generated files — do not edit
 

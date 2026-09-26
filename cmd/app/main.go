@@ -16,6 +16,11 @@ import (
 //	@description	`Accept-Language` header or `?lang=` query: en (default), km, ms.
 //	@BasePath		/api
 
+//	@securityDefinitions.apikey	BearerAuth
+//	@in							header
+//	@name						Authorization
+//	@description				Access token as "Bearer <token>".
+
 func main() {
 	// Init db connection
 	db.Connect()

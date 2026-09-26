@@ -3,28 +3,46 @@
 package i18n
 
 const (
-	// The request is invalid.
+	// The request is invalid or malformed.
 	BadRequest Key = "BAD_REQUEST"
-	// Please log in to continue.
+	// Authentication is required. Please sign in to continue.
 	Unauthorized Key = "UNAUTHORIZED"
-	// You don't have permission to do this.
+	// You do not have permission to perform this action.
 	Forbidden Key = "FORBIDDEN"
-	// The item was not found.
+	// The requested resource was not found.
 	NotFound Key = "NOT_FOUND"
-	// This conflicts with existing data.
+	// The request conflicts with the current state of the resource.
 	Conflict Key = "CONFLICT"
-	// Some fields are invalid.
+	// One or more fields are invalid. Please check your input and try again.
 	UnprocessableEntity Key = "UNPROCESSABLE_ENTITY"
-	// Something went wrong. Please try again.
+	// An unexpected error occurred. Please try again later.
 	InternalServerError Key = "INTERNAL_SERVER_ERROR"
-	// The ID is invalid.
+	// The provided ID is invalid.
 	InvalidID Key = "INVALID_ID"
-	// The record was not found.
+	// The requested record was not found.
 	RecordNotFound Key = "RECORD_NOT_FOUND"
-	// Please choose a file to upload.
+	// Too many requests. Please try again in {seconds} seconds.
+	TooManyRequests Key = "TOO_MANY_REQUESTS"
+	// A file is required. Please select a file to upload.
 	FileRequired Key = "FILE_REQUIRED"
-	// The file is too large. The maximum size is {max}.
+	// The file exceeds the maximum allowed size of {max}.
 	FileTooLarge Key = "FILE_TOO_LARGE"
+	// The username is not valid.
+	InvalidUsername Key = "INVALID_USERNAME"
+	// The email address is not valid.
+	InvalidEmail Key = "INVALID_EMAIL"
+	// This username is already taken.
+	UsernameTaken Key = "USERNAME_TAKEN"
+	// This email is already registered.
+	EmailTaken Key = "EMAIL_TAKEN"
+	// Too many attempts. Please try again in {minutes} minutes.
+	TooManyAttempts Key = "TOO_MANY_ATTEMPTS"
+	// The username or password is incorrect.
+	InvalidCredentials Key = "INVALID_CREDENTIALS"
+	// This account has been disabled.
+	AccountDisabled Key = "ACCOUNT_DISABLED"
+	// Your session has expired. Please sign in again.
+	TokenExpired Key = "TOKEN_EXPIRED"
 )
 
 // AllKeys lists every key in en.yml.
@@ -38,6 +56,15 @@ var AllKeys = []Key{
 	InternalServerError,
 	InvalidID,
 	RecordNotFound,
+	TooManyRequests,
 	FileRequired,
 	FileTooLarge,
+	InvalidUsername,
+	InvalidEmail,
+	UsernameTaken,
+	EmailTaken,
+	TooManyAttempts,
+	InvalidCredentials,
+	AccountDisabled,
+	TokenExpired,
 }

@@ -1,6 +1,8 @@
 package config
 
 import (
+	"errors"
+	"io/fs"
 	"log"
 	"os"
 	"strconv"
@@ -46,8 +48,9 @@ var (
 )
 
 func init() {
+	// A missing .env is fine (env vars set by the host, or tests); a broken one is not.
 	err := godotenv.Load()
-	if err != nil {
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		log.Fatal("Error loading .env file")
 	}
 

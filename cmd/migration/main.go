@@ -14,6 +14,7 @@ func main() {
 	err := db1.AutoMigrate(
 		model.Attachment{},
 		model.User{},
+		model.RefreshToken{},
 	)
 
 	if err != nil {

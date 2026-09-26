@@ -16,3 +16,13 @@ var AttachmentTypeValues = []string{
 	string(AttachmentTypeVideo),
 	string(AttachmentTypeFile),
 }
+
+type DeviceOSEnum string
+
+const (
+	DeviceOsIOS     = "IOS"
+	DeviceOsAndroid = "ANDROID"
+	DeviceOsWindow  = "WINDOW"
+	DeviceOsLinux   = "LINUX"
+	DeviceOsMac     = "MAC"
+)

@@ -11,7 +11,18 @@ INTERNAL_SERVER_ERROR: "Ralat yang tidak dijangka telah berlaku. Sila cuba lagi 
 # Common
 INVALID_ID: "ID yang diberikan tidak sah."
 RECORD_NOT_FOUND: "Rekod yang diminta tidak dijumpai."
+TOO_MANY_REQUESTS: "Terlalu banyak permintaan. Sila cuba lagi dalam {seconds} saat."
 
 # Attachments
 FILE_REQUIRED: "Fail diperlukan. Sila pilih fail untuk dimuat naik."
 FILE_TOO_LARGE: "Saiz fail melebihi had maksimum yang dibenarkan iaitu {max}."
+
+# Auth
+INVALID_USERNAME: "Nama pengguna tidak sah."
+INVALID_EMAIL: "Alamat e-mel tidak sah."
+USERNAME_TAKEN: "Nama pengguna ini telah digunakan."
+EMAIL_TAKEN: "E-mel ini telah didaftarkan."
+TOO_MANY_ATTEMPTS: "Terlalu banyak percubaan. Sila cuba lagi dalam {minutes} minit."
+INVALID_CREDENTIALS: "Nama pengguna atau kata laluan tidak betul."
+ACCOUNT_DISABLED: "Akaun ini telah dinyahaktifkan."
+TOKEN_EXPIRED: "Sesi anda telah tamat. Sila log masuk semula."
