@@ -1,0 +1,6 @@
+.env
+cmd/docs
+docs
+.vscode
+tmp
+temp/*

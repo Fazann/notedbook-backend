@@ -1,0 +1,17 @@
+# Malay — must have the same keys and placeholders as en.yml.
+
+BAD_REQUEST: "Permintaan tidak sah atau formatnya salah."
+UNAUTHORIZED: "Pengesahan diperlukan. Sila log masuk untuk meneruskan."
+FORBIDDEN: "Anda tidak mempunyai kebenaran untuk melakukan tindakan ini."
+NOT_FOUND: "Sumber yang diminta tidak dijumpai."
+CONFLICT: "Permintaan ini bercanggah dengan keadaan semasa sumber."
+UNPROCESSABLE_ENTITY: "Satu atau lebih medan tidak sah. Sila semak input anda dan cuba lagi."
+INTERNAL_SERVER_ERROR: "Ralat yang tidak dijangka telah berlaku. Sila cuba lagi kemudian."
+
+# Common
+INVALID_ID: "ID yang diberikan tidak sah."
+RECORD_NOT_FOUND: "Rekod yang diminta tidak dijumpai."
+
+# Attachments
+FILE_REQUIRED: "Fail diperlukan. Sila pilih fail untuk dimuat naik."
+FILE_TOO_LARGE: "Saiz fail melebihi had maksimum yang dibenarkan iaitu {max}."

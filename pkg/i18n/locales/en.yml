@@ -1,0 +1,20 @@
+# English — source of truth for translation keys.
+# Keys: UPPER_SNAKE_CASE. Placeholders: {name}, filled from i18n.Err params.
+# After adding or renaming a key, run `make locale` to regenerate pkg/i18n/keys_gen.go.
+
+# Generic (also used for errors without a translation key, chosen by HTTP status)
+BAD_REQUEST: "The request is invalid or malformed."
+UNAUTHORIZED: "Authentication is required. Please sign in to continue."
+FORBIDDEN: "You do not have permission to perform this action."
+NOT_FOUND: "The requested resource was not found."
+CONFLICT: "The request conflicts with the current state of the resource."
+UNPROCESSABLE_ENTITY: "One or more fields are invalid. Please check your input and try again."
+INTERNAL_SERVER_ERROR: "An unexpected error occurred. Please try again later."
+
+# Common
+INVALID_ID: "The provided ID is invalid."
+RECORD_NOT_FOUND: "The requested record was not found."
+
+# Attachments
+FILE_REQUIRED: "A file is required. Please select a file to upload."
+FILE_TOO_LARGE: "The file exceeds the maximum allowed size of {max}."
