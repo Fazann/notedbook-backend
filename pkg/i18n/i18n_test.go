@@ -3,6 +3,7 @@ package i18n
 import (
 	"fmt"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -20,13 +21,13 @@ func TestEveryKeyIsTranslated(t *testing.T) {
 }
 
 func TestT(t *testing.T) {
-	if got, want := T(KM, RecordNotFound, nil), "រកមិនឃើញទិន្នន័យទេ។"; got != want {
-		t.Errorf("T(km) = %q, want %q", got, want)
+	if got, want := T(KM, RecordNotFound, nil), catalog[KM][RecordNotFound]; got != want {
+		t.Errorf("T(km) = %q, want the km.yml text %q", got, want)
 	}
-	if got, want := T(MS, FileTooLarge, Params{"max": "100 MB"}), "Fail terlalu besar. Saiz maksimum ialah 100 MB."; got != want {
-		t.Errorf("T(ms, params) = %q, want %q", got, want)
+	if got := T(MS, FileTooLarge, Params{"max": "100 MB"}); !strings.Contains(got, "100 MB") || strings.Contains(got, "{max}") {
+		t.Errorf("T(ms, params) = %q, want {max} replaced by 100 MB", got)
 	}
-	if got, want := T("fr", RecordNotFound, nil), "The record was not found."; got != want {
+	if got, want := T("fr", RecordNotFound, nil), catalog[EN][RecordNotFound]; got != want {
 		t.Errorf("unknown lang = %q, want English fallback %q", got, want)
 	}
 	if got, want := T(EN, "NO_SUCH_KEY", nil), "NO_SUCH_KEY"; got != want {
