@@ -16,7 +16,7 @@ func InitRouter(r *gin.Engine) {
 
 	// Swagger UI at /swagger/index.html; not served in production.
 	if config.Environment != "production" {
-		r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+		r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.PersistAuthorization(true)))
 	}
 
 	r.GET("ping", func(c *gin.Context) {

@@ -24,16 +24,12 @@ func NewUserHandler(attachments service.AttachmentUsage) *UserHandler {
 //
 //	@Summary		Get my profile
 //	@Description	Returns the signed-in user's profile, with the avatar's full URL when set.
-//	@Tags			users
+//	@Tags			auth
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			Accept-Language	header		string	false	"Language of error messages"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.ProfileRes}
-//	@Failure		401				{object}	response.ErrorRes	"UNAUTHORIZED or TOKEN_EXPIRED"
-//	@Failure		403				{object}	response.ErrorRes	"ACCOUNT_DISABLED"
-//	@Failure		404				{object}	response.ErrorRes	"RECORD_NOT_FOUND"
-//	@Failure		500				{object}	response.ErrorRes	"INTERNAL_SERVER_ERROR"
-//	@Router			/v1/users/profile [get]
+//	@Router			/v1/auth/profile [get]
 func (h *UserHandler) GetProfile(c *gin.Context) {
 	res := h.userSvc.GetProfile(c.Request.Context(), middleware.CurrentUserID(c))
 	if res.Error != nil {
@@ -50,14 +46,14 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 //	@Description	Changes only the fields that are sent. Username and email must not belong to another user.
 //	@Description	avatar_id must be an uploaded image that is not used yet; it is then marked as used and the
 //	@Description	previous avatar, if any, is deleted.
-//	@Tags			users
+//	@Tags			auth
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			body			body		dto.UpdateProfileReq	true	"Fields to change"
 //	@Param			Accept-Language	header		string					false	"Language of error messages"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.ProfileRes}
-//	@Router			/v1/users/profile [patch]
+//	@Router			/v1/auth/profile [patch]
 func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	var req dto.UpdateProfileReq
 	if err := c.ShouldBindJSON(&req); err != nil {
