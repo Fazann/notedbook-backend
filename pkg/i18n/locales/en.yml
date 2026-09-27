@@ -35,6 +35,9 @@ INVALID_CREDENTIALS: "The username or password is incorrect."
 INCORRECT_PASSWORD: "The current password is incorrect."
 ACCOUNT_DISABLED: "This account has been disabled."
 TOKEN_EXPIRED: "Your session has expired. Please sign in again."
+INVALID_OTP: "The code is incorrect or has expired."
+OTP_TOO_MANY_ATTEMPTS: "Too many incorrect codes. Please request a new code."
+INVALID_RESET_KEY: "This password reset request is invalid or has expired. Please start again."
 
 # Validation ({field} is the JSON field name, e.g. device.os)
 VALIDATION_FAILED: "One or more fields are invalid."

@@ -45,6 +45,16 @@ var (
 	S3Region      string
 	S3PrefixUrl   string
 	S3ProjectName string
+
+	SmtpHost     string
+	SmtpPort     string
+	SmtpUsername string
+	SmtpPassword string
+	SmtpFrom     string
+	SmtpFromName string
+
+	// Secret for the AES-GCM password reset key.
+	OtpSecret string
 )
 
 func init() {
@@ -107,6 +117,15 @@ func init() {
 	S3Region = os.Getenv("S3_REGION")
 	S3PrefixUrl = os.Getenv("S3_PREFIX_URL")
 	S3ProjectName = os.Getenv("S3_PROJECT_NAME")
+
+	SmtpHost = os.Getenv("SMTP_HOST")
+	SmtpPort = getEnvDefault("SMTP_PORT", "587")
+	SmtpUsername = os.Getenv("SMTP_USERNAME")
+	SmtpPassword = os.Getenv("SMTP_PASSWORD")
+	SmtpFrom = os.Getenv("SMTP_FROM")
+	SmtpFromName = getEnvDefault("SMTP_FROM_NAME", "Notebook")
+
+	OtpSecret = os.Getenv("OTP_SECRET")
 }
 
 func getEnvDefault(key, def string) string {

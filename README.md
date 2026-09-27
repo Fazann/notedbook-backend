@@ -29,6 +29,31 @@ make run
 The API is served at `http://localhost:<PORT>/api`, and Swagger UI at
 `http://localhost:<PORT>/swagger/index.html` (not served when `ENVIRONMENT=production`).
 
+## Environment variables
+
+Copy `.env.example` to `.env`. All variables are read in `config/config.go`.
+
+| Variable | Default | Description |
+|---|---|---|
+| `ENVIRONMENT` | | `production` turns off Swagger UI and switches logs to JSON. |
+| `PORT` | | HTTP port. |
+| `JWT_SECRET` | | Secret for signing access and refresh tokens. |
+| `ACC_TK_EXPIRED` | `1` | Access token lifetime in hours. |
+| `REF_TK_EXPIRED` | `1` | Refresh token lifetime in days. |
+| `DB_USERNAME`, `DB_PASSWORD`, `DB_NAME`, `DB_HOST`, `DB_PORT` | | PostgreSQL connection. |
+| `DB_SSLMODE` | `disable` | PostgreSQL `sslmode`. |
+| `DB_TIMEZONE` | `UTC` | PostgreSQL session time zone. |
+| `DB_MAX_OPEN_CONNS`, `DB_MAX_IDLE_CONNS` | `100`, `25` | Connection pool size. |
+| `DB_CONN_MAX_LIFETIME`, `DB_CONN_MAX_IDLE_TIME` | `30`, `5` | Connection lifetimes in minutes. |
+| `REDIS_ADDR`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_DB` | `REDIS_DB=0` | Redis connection. The port is added only when `REDIS_ADDR` has none. |
+| `S3_BUCKET`, `S3_ID`, `S3_SECRET`, `S3_REGION`, `S3_PREFIX_URL`, `S3_PROJECT_NAME` | | Attachment storage on S3. |
+| `SMTP_HOST` | | SMTP server for emails (password reset codes). Emails are not sent when empty. |
+| `SMTP_PORT` | `587` | `587` uses STARTTLS, `465` uses implicit TLS. |
+| `SMTP_USERNAME`, `SMTP_PASSWORD` | | SMTP login. Leave empty for a server without authentication. |
+| `SMTP_FROM` | | Sender address. Emails are not sent when empty. |
+| `SMTP_FROM_NAME` | `Notebook` | Sender name, also used as the app name in email templates. |
+| `OTP_SECRET` | | Secret for the AES-GCM key returned by `/auth/mail-otp/verify`. Any long random string; password reset fails when empty. |
+
 ## Makefile commands
 
 | Command | What it does |

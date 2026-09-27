@@ -51,6 +51,12 @@ const (
 	AccountDisabled Key = "ACCOUNT_DISABLED"
 	// Your session has expired. Please sign in again.
 	TokenExpired Key = "TOKEN_EXPIRED"
+	// The code is incorrect or has expired.
+	InvalidOTP Key = "INVALID_OTP"
+	// Too many incorrect codes. Please request a new code.
+	OTPTooManyAttempts Key = "OTP_TOO_MANY_ATTEMPTS"
+	// This password reset request is invalid or has expired. Please start again.
+	InvalidResetKey Key = "INVALID_RESET_KEY"
 	// One or more fields are invalid.
 	ValidationFailed Key = "VALIDATION_FAILED"
 	// {field} is required.
@@ -101,6 +107,9 @@ var AllKeys = []Key{
 	IncorrectPassword,
 	AccountDisabled,
 	TokenExpired,
+	InvalidOTP,
+	OTPTooManyAttempts,
+	InvalidResetKey,
 	ValidationFailed,
 	FieldRequired,
 	FieldInvalid,

@@ -32,6 +32,9 @@ INVALID_CREDENTIALS: "Nama pengguna atau kata laluan tidak betul."
 INCORRECT_PASSWORD: "Kata laluan semasa tidak betul."
 ACCOUNT_DISABLED: "Akaun ini telah dinyahaktifkan."
 TOKEN_EXPIRED: "Sesi anda telah tamat. Sila log masuk semula."
+INVALID_OTP: "Kod tidak betul atau telah tamat tempoh."
+OTP_TOO_MANY_ATTEMPTS: "Terlalu banyak kod yang salah. Sila minta kod baharu."
+INVALID_RESET_KEY: "Permintaan set semula kata laluan ini tidak sah atau telah tamat tempoh. Sila mulakan semula."
 
 # Validation ({field} is the JSON field name, e.g. device.os)
 VALIDATION_FAILED: "Satu atau lebih medan tidak sah."

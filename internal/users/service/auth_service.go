@@ -38,6 +38,9 @@ type AuthServiceImpl interface {
 	Register(ctx context.Context, req *dto.RegisterReq, clientIP string) response.SvcRes
 	Login(ctx context.Context, req *dto.LoginReq) response.SvcRes
 	RefreshToken(ctx context.Context, req *dto.RefreshTokenReq) response.SvcRes
+	RequestMailOTP(ctx context.Context, req *dto.MailOTPRequestReq) response.SvcRes
+	VerifyMailOTP(ctx context.Context, req *dto.MailOTPVerifyReq) response.SvcRes
+	ResetPassword(ctx context.Context, req *dto.ResetPasswordReq) response.SvcRes
 }
 
 type authSvc struct {

@@ -106,3 +106,87 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 
 	response.JsonSuccessRes(c, res.Data, res.StatusCode)
 }
+
+// RequestMailOTP godoc
+//
+//	@Summary		Request a password reset code
+//	@Description	Emails a 6-digit code to the address if it belongs to an active account. The response is the same
+//	@Description	whether the email is registered or not. One request per email per minute; a new code replaces the old one.
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			body			body		dto.MailOTPRequestReq	true	"Account email"
+//	@Param			Accept-Language	header		string					false	"Language of error messages"	Enums(en, km, ms)
+//	@Success		200				{object}	response.SuccessRes{data=dto.MailOTPRequestRes}
+//	@Router			/v1/auth/mail-otp/request [post]
+func (h *AuthHandler) RequestMailOTP(c *gin.Context) {
+	var req dto.MailOTPRequestReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.JsonErrRes(c, err, http.StatusBadRequest)
+		return
+	}
+
+	res := h.authSvc.RequestMailOTP(c.Request.Context(), &req)
+	if res.Error != nil {
+		response.JsonErrRes(c, res.Error, res.StatusCode)
+		return
+	}
+
+	response.JsonSuccessRes(c, res.Data, res.StatusCode)
+}
+
+// VerifyMailOTP godoc
+//
+//	@Summary		Verify a password reset code
+//	@Description	Checks the emailed code and returns a single-use key for /auth/reset-password, valid for 10 minutes.
+//	@Description	After 5 wrong codes the code is cancelled and a new one must be requested.
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			body			body		dto.MailOTPVerifyReq	true	"Email and code"
+//	@Param			Accept-Language	header		string					false	"Language of error messages"	Enums(en, km, ms)
+//	@Success		200				{object}	response.SuccessRes{data=dto.MailOTPVerifyRes}
+//	@Router			/v1/auth/mail-otp/verify [post]
+func (h *AuthHandler) VerifyMailOTP(c *gin.Context) {
+	var req dto.MailOTPVerifyReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.JsonErrRes(c, err, http.StatusBadRequest)
+		return
+	}
+
+	res := h.authSvc.VerifyMailOTP(c.Request.Context(), &req)
+	if res.Error != nil {
+		response.JsonErrRes(c, res.Error, res.StatusCode)
+		return
+	}
+
+	response.JsonSuccessRes(c, res.Data, res.StatusCode)
+}
+
+// ResetPassword godoc
+//
+//	@Summary		Reset the password
+//	@Description	Sets a new password with the key from /auth/mail-otp/verify. The key works once.
+//	@Description	Every session of the user is signed out.
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			body			body		dto.ResetPasswordReq	true	"Key and new password"
+//	@Param			Accept-Language	header		string					false	"Language of error messages"	Enums(en, km, ms)
+//	@Success		200				{object}	response.SuccessRes
+//	@Router			/v1/auth/reset-password [post]
+func (h *AuthHandler) ResetPassword(c *gin.Context) {
+	var req dto.ResetPasswordReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.JsonErrRes(c, err, http.StatusBadRequest)
+		return
+	}
+
+	res := h.authSvc.ResetPassword(c.Request.Context(), &req)
+	if res.Error != nil {
+		response.JsonErrRes(c, res.Error, res.StatusCode)
+		return
+	}
+
+	response.JsonSuccessRes(c, res.Data, res.StatusCode)
+}

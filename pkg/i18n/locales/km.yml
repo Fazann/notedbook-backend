@@ -32,6 +32,9 @@ INVALID_CREDENTIALS: "ឈ្មោះអ្នកប្រើ ឬពាក្យ
 INCORRECT_PASSWORD: "ពាក្យសម្ងាត់បច្ចុប្បន្នមិនត្រឹមត្រូវទេ។"
 ACCOUNT_DISABLED: "គណនីនេះត្រូវបានបិទ។"
 TOKEN_EXPIRED: "វគ្គរបស់អ្នកបានផុតកំណត់។ សូមចូលគណនីម្តងទៀត។"
+INVALID_OTP: "លេខកូដមិនត្រឹមត្រូវ ឬផុតកំណត់ហើយ។"
+OTP_TOO_MANY_ATTEMPTS: "លេខកូដមិនត្រឹមត្រូវច្រើនដងពេក។ សូមស្នើសុំលេខកូដថ្មី។"
+INVALID_RESET_KEY: "សំណើកំណត់ពាក្យសម្ងាត់ឡើងវិញនេះមិនត្រឹមត្រូវ ឬផុតកំណត់ហើយ។ សូមចាប់ផ្ដើមម្ដងទៀត។"
 
 # Validation ({field} is the JSON field name, e.g. device.os)
 VALIDATION_FAILED: "វាលមួយ ឬច្រើនមិនត្រឹមត្រូវទេ។"
