@@ -22,7 +22,7 @@ type Attachment struct {
 	ThumbnailPath string                   `gorm:"type:varchar(255);not null"`
 	ThumbnailUrl  string                   `gorm:"type:varchar(255);not null"`
 	Duration      *float64
-	UsedAt        time.Time
+	UsedAt        *time.Time `gorm:"type:timestamptz"` // nil until a record uses the file
 	BaseModelGorm
 }
 

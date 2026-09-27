@@ -2,7 +2,10 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
+	"time"
 
 	"net/http"
 	"os"
@@ -21,6 +24,8 @@ import (
 type AttachmentServiceImpl interface {
 	GetDetail(ctx context.Context, id uint) response.SvcRes
 	UploadFile(ctx context.Context, file dto.FileData) response.SvcRes
+	MarkUsed(ctx context.Context, id uint, types ...enums.AttachmentTypeEnum) error
+	Delete(ctx context.Context, id uint, deletedBy uint) error
 }
 
 type attachmentSvc struct {
@@ -133,6 +138,45 @@ func (s *attachmentSvc) UploadFile(ctx context.Context, file dto.FileData) respo
 		},
 		StatusCode: 201,
 	}
+}
+
+// MarkUsed marks an unused attachment as used by a record (e.g. a user's avatar). When types are
+// given, the attachment must be one of them. Errors: i18n.RecordNotFound, i18n.InvalidAttachmentType,
+// i18n.AttachmentInUse, or a database error.
+func (s *attachmentSvc) MarkUsed(ctx context.Context, id uint, types ...enums.AttachmentTypeEnum) error {
+	attachment, err := s.repo.FindOne(ctx, "id = ?", id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return i18n.RecordNotFound
+		}
+		return fmt.Errorf("find attachment: %w", err)
+	}
+
+	if len(types) > 0 && !utils.IsInclude(types, attachment.Type) {
+		names := make([]string, len(types))
+		for i, t := range types {
+			names[i] = string(t)
+		}
+		return i18n.Err(i18n.InvalidAttachmentType, i18n.Params{"types": strings.Join(names, ", ")})
+	}
+
+	marked, err := s.repo.MarkUsed(ctx, id, time.Now())
+	if err != nil {
+		return fmt.Errorf("mark attachment used: %w", err)
+	}
+	if !marked {
+		return i18n.AttachmentInUse
+	}
+
+	return nil
+}
+
+// Delete soft-deletes an attachment that is no longer used (e.g. a replaced avatar).
+func (s *attachmentSvc) Delete(ctx context.Context, id uint, deletedBy uint) error {
+	if err := s.repo.SoftDelete(ctx, id, deletedBy); err != nil {
+		return fmt.Errorf("delete attachment: %w", err)
+	}
+	return nil
 }
 
 // ============================================================

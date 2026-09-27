@@ -13,6 +13,7 @@ type UserRepoImpl interface {
 	baserepo.BaseRepo[model.User]
 	WithTx(tx *gorm.DB) UserRepoImpl
 	FindByUsername(ctx context.Context, username string) (*model.User, error)
+	FindByEmail(ctx context.Context, email string) (*model.User, error)
 	FindByUsernameOrEmail(ctx context.Context, username, email string) (*model.User, error)
 	FindByIDWithAvatar(ctx context.Context, id uint) (*model.User, error)
 }

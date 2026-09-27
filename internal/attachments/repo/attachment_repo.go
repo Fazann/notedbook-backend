@@ -1,6 +1,9 @@
 package repo
 
 import (
+	"context"
+	"time"
+
 	"github.com/Fazann/notedbook-backend/pkg/db"
 	"github.com/Fazann/notedbook-backend/shared/baserepo"
 	model "github.com/Fazann/notedbook-backend/shared/models"
@@ -9,6 +12,8 @@ import (
 
 type AttachmentRepoImpl interface {
 	baserepo.BaseRepo[model.Attachment]
+	MarkUsed(ctx context.Context, id uint, usedAt time.Time) (bool, error)
+	SoftDelete(ctx context.Context, id uint, deletedBy uint) error
 }
 
 type attachmentRepo struct {
@@ -21,4 +26,23 @@ func NewAttachmentRepo() *attachmentRepo {
 		db:       db.DB,
 		BaseRepo: baserepo.NewBaseRepo[model.Attachment](db.DB),
 	}
+}
+
+// MarkUsed sets used_at on an attachment that is not used yet. It reports false when the
+// attachment is already used (or does not exist), so two records cannot claim the same file.
+func (r *attachmentRepo) MarkUsed(ctx context.Context, id uint, usedAt time.Time) (bool, error) {
+	res := r.db.WithContext(ctx).Model(&model.Attachment{}).
+		Where("id = ?", id).
+		Update("used_at", usedAt)
+	if res.Error != nil {
+		return false, res.Error
+	}
+	return res.RowsAffected == 1, nil
+}
+
+// SoftDelete marks an attachment as deleted by deletedBy; the file in S3 is kept.
+func (r *attachmentRepo) SoftDelete(ctx context.Context, id uint, deletedBy uint) error {
+	return r.db.WithContext(ctx).Model(&model.Attachment{}).
+		Where("id = ?", id).
+		Updates(map[string]any{"deleted_at": time.Now(), "deleted_by": deletedBy}).Error
 }

@@ -27,6 +27,12 @@ const (
 	FileRequired Key = "FILE_REQUIRED"
 	// The file exceeds the maximum allowed size of {max}.
 	FileTooLarge Key = "FILE_TOO_LARGE"
+	// This file is already used elsewhere. Please upload a new one.
+	AttachmentInUse Key = "ATTACHMENT_IN_USE"
+	// The file type is not allowed. Allowed types: {types}.
+	InvalidAttachmentType Key = "INVALID_ATTACHMENT_TYPE"
+	// The full name is not valid.
+	InvalidFullname Key = "INVALID_FULLNAME"
 	// The username is not valid.
 	InvalidUsername Key = "INVALID_USERNAME"
 	// The email address is not valid.
@@ -81,6 +87,9 @@ var AllKeys = []Key{
 	TooManyRequests,
 	FileRequired,
 	FileTooLarge,
+	AttachmentInUse,
+	InvalidAttachmentType,
+	InvalidFullname,
 	InvalidUsername,
 	InvalidEmail,
 	UsernameTaken,

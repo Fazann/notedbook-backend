@@ -5,6 +5,7 @@ import (
 
 	"github.com/Fazann/notedbook-backend/config"
 	"github.com/Fazann/notedbook-backend/internal/attachments/handler"
+	attachmentService "github.com/Fazann/notedbook-backend/internal/attachments/service"
 	userHandler "github.com/Fazann/notedbook-backend/internal/users/handler"
 	"github.com/Fazann/notedbook-backend/pkg/redis"
 	"github.com/Fazann/notedbook-backend/shared/middleware"
@@ -21,7 +22,7 @@ func newHandlers() *handlers {
 	return &handlers{
 		attachmentHandler: *handler.NewAttachmentHandler(),
 		authHandler:       *userHandler.NewAuthHandler(),
-		userHandler:       *userHandler.NewUserHandler(),
+		userHandler:       *userHandler.NewUserHandler(attachmentService.NewAttachmentSvc()),
 	}
 }
 
@@ -42,5 +43,6 @@ func initAPIRoute(r *gin.Engine) {
 	auth.POST("/refresh-token", rl.LimitIP(60, time.Minute), h.authHandler.RefreshToken)
 
 	users := api.Group("/users", authRequired)
-	users.GET("/me", h.userHandler.GetProfile)
+	users.GET("/profile", h.userHandler.GetProfile)
+	users.PATCH("/profile", h.userHandler.UpdateProfile)
 }
