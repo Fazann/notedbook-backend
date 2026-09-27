@@ -5,6 +5,7 @@ import (
 	"github.com/Fazann/notedbook-backend/pkg/db"
 	"github.com/Fazann/notedbook-backend/pkg/logger"
 	"github.com/Fazann/notedbook-backend/pkg/redis"
+	"github.com/Fazann/notedbook-backend/pkg/validation"
 	"github.com/Fazann/notedbook-backend/routes"
 	"github.com/gin-gonic/gin"
 )
@@ -27,6 +28,9 @@ func main() {
 
 	// Init redis connection
 	redis.InitRedis()
+
+	// Report JSON field names in validation errors
+	validation.Register()
 
 	r := gin.Default()
 

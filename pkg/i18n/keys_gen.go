@@ -43,6 +43,28 @@ const (
 	AccountDisabled Key = "ACCOUNT_DISABLED"
 	// Your session has expired. Please sign in again.
 	TokenExpired Key = "TOKEN_EXPIRED"
+	// One or more fields are invalid.
+	ValidationFailed Key = "VALIDATION_FAILED"
+	// {field} is required.
+	FieldRequired Key = "FIELD_REQUIRED"
+	// {field} is invalid.
+	FieldInvalid Key = "FIELD_INVALID"
+	// {field} must be a {type}.
+	FieldInvalidType Key = "FIELD_INVALID_TYPE"
+	// {field} must be one of: {values}.
+	FieldOneOf Key = "FIELD_ONE_OF"
+	// {field} must be a valid email address.
+	FieldInvalidEmail Key = "FIELD_INVALID_EMAIL"
+	// {field} must be at least {min} characters.
+	FieldMinLength Key = "FIELD_MIN_LENGTH"
+	// {field} must be at most {max} characters.
+	FieldMaxLength Key = "FIELD_MAX_LENGTH"
+	// {field} must be exactly {len} characters.
+	FieldExactLength Key = "FIELD_EXACT_LENGTH"
+	// {field} must be at least {min}.
+	FieldMinValue Key = "FIELD_MIN_VALUE"
+	// {field} must be at most {max}.
+	FieldMaxValue Key = "FIELD_MAX_VALUE"
 )
 
 // AllKeys lists every key in en.yml.
@@ -67,4 +89,15 @@ var AllKeys = []Key{
 	InvalidCredentials,
 	AccountDisabled,
 	TokenExpired,
+	ValidationFailed,
+	FieldRequired,
+	FieldInvalid,
+	FieldInvalidType,
+	FieldOneOf,
+	FieldInvalidEmail,
+	FieldMinLength,
+	FieldMaxLength,
+	FieldExactLength,
+	FieldMinValue,
+	FieldMaxValue,
 }

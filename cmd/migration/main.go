@@ -15,6 +15,7 @@ func main() {
 		model.Attachment{},
 		model.User{},
 		model.RefreshToken{},
+		model.Device{},
 	)
 
 	if err != nil {

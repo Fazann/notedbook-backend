@@ -8,11 +8,13 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/Fazann/notedbook-backend/config"
 	"github.com/Fazann/notedbook-backend/internal/users/dto"
 	"github.com/Fazann/notedbook-backend/internal/users/repo"
 	"github.com/Fazann/notedbook-backend/pkg/db"
+	"github.com/Fazann/notedbook-backend/pkg/enums"
 	"github.com/Fazann/notedbook-backend/pkg/i18n"
 	token "github.com/Fazann/notedbook-backend/pkg/jwt"
 	"github.com/Fazann/notedbook-backend/pkg/logger"
@@ -41,12 +43,14 @@ type AuthServiceImpl interface {
 type authSvc struct {
 	userRepo         repo.UserRepoImpl
 	refreshTokenRepo repo.RefreshTokenRepoImpl
+	deviceRepo       repo.DeviceRepoImpl
 }
 
 func NewAuthSvc() *authSvc {
 	return &authSvc{
 		userRepo:         repo.NewUserRepo(),
 		refreshTokenRepo: repo.NewRefreshTokenRepo(),
+		deviceRepo:       repo.NewDeviceRepo(),
 	}
 }
 
@@ -55,13 +59,16 @@ func (s *authSvc) Register(ctx context.Context, req *dto.RegisterReq, clientIP s
 	if err != nil {
 		return response.SvcRespErr(err, http.StatusBadRequest)
 	}
-	email, err := cleanEmail(req.Email)
-	if err != nil {
-		return response.SvcRespErr(err, http.StatusBadRequest)
-	}
 
-	// 1. Limit attempts per email + IP
-	limitKey := fmt.Sprintf("register:attempt:%s:%s", email, clientIP)
+	email := ""
+	if req.Email != "" {
+		email, err = cleanEmail(req.Email)
+		if err != nil {
+			return response.SvcRespErr(err, http.StatusBadRequest)
+		}
+	}
+	// 1. Limit attempts per device + IP
+	limitKey := fmt.Sprintf("register:attempt:%s:%s", req.Device.UID, clientIP)
 	allowed, _, err := redis.Hit(ctx, limitKey, registerMaxAttempts, registerBlockTime)
 	if err != nil {
 		return response.SvcRespErr(fmt.Errorf("register rate limit: %w", err), http.StatusInternalServerError)
@@ -90,7 +97,7 @@ func (s *authSvc) Register(ctx context.Context, req *dto.RegisterReq, clientIP s
 		return response.SvcRespErr(fmt.Errorf("hash password: %w", err), http.StatusInternalServerError)
 	}
 
-	// 3. Create user, issue tokens and store the refresh token in one transaction
+	// 3. Create user, store the device, issue tokens and store the refresh token in one transaction
 	var res dto.TokenRes
 	err = db.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		user, err := s.userRepo.WithTx(tx).Create(ctx, &model.User{
@@ -101,6 +108,10 @@ func (s *authSvc) Register(ctx context.Context, req *dto.RegisterReq, clientIP s
 		})
 		if err != nil {
 			return fmt.Errorf("create user: %w", err)
+		}
+
+		if err := s.storeDevice(ctx, tx, user.ID, &req.Device); err != nil {
+			return err
 		}
 
 		tokens, err := s.issueTokens(user.ID)
@@ -130,8 +141,8 @@ func (s *authSvc) Register(ctx context.Context, req *dto.RegisterReq, clientIP s
 func (s *authSvc) Login(ctx context.Context, req *dto.LoginReq) response.SvcRes {
 	username := strings.TrimSpace(req.Username)
 
-	// Limit attempts per username; cleared after a successful login
-	limitKey := fmt.Sprintf("login:attempt:%s", username)
+	// Limit attempts per device + IP; cleared after a successful login
+	limitKey := fmt.Sprintf("login:attempt:%s:%s", req.Device.UID, req.IP)
 	allowed, _, err := redis.Hit(ctx, limitKey, loginMaxAttempts, loginBlockTime)
 	if err != nil {
 		return response.SvcRespErr(fmt.Errorf("login rate limit: %w", err), http.StatusInternalServerError)
@@ -161,28 +172,39 @@ func (s *authSvc) Login(ctx context.Context, req *dto.LoginReq) response.SvcRes 
 		return response.SvcRespErr(i18n.AccountDisabled, http.StatusForbidden)
 	}
 
-	// Issue new tokens for a new session and store its refresh token
-	tokens, err := s.issueTokens(user.ID)
-	if err != nil {
-		return response.SvcRespErr(err, http.StatusInternalServerError)
-	}
-	_, err = s.refreshTokenRepo.IssueNewUserToken(ctx, model.RefreshToken{
-		UserID:    user.ID,
-		SessionID: tokens.SessionID,
-		ExpiredAt: tokens.RefreshExpiresAt,
+	// Store the device, issue new tokens for a new session and store its refresh token in one transaction
+	var res dto.TokenRes
+	err = db.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := s.storeDevice(ctx, tx, user.ID, &req.Device); err != nil {
+			return err
+		}
+
+		tokens, err := s.issueTokens(user.ID)
+		if err != nil {
+			return err
+		}
+		_, err = s.refreshTokenRepo.WithTx(tx).IssueNewUserToken(ctx, model.RefreshToken{
+			UserID:    user.ID,
+			SessionID: tokens.SessionID,
+			ExpiredAt: tokens.RefreshExpiresAt,
+		})
+		if err != nil {
+			return fmt.Errorf("store refresh token: %w", err)
+		}
+
+		res.AccessToken = tokens.AccessToken
+		res.RefreshToken = tokens.RefreshToken
+		return nil
 	})
 	if err != nil {
-		return response.SvcRespErr(fmt.Errorf("store refresh token: %w", err), http.StatusInternalServerError)
+		return response.SvcRespErr(err, http.StatusInternalServerError)
 	}
 
 	if err := redis.Reset(ctx, limitKey); err != nil {
 		logger.Warn("reset login attempts failed", "err", err)
 	}
 
-	return response.SvcRespSuccess(&dto.TokenRes{
-		AccessToken:  tokens.AccessToken,
-		RefreshToken: tokens.RefreshToken,
-	}, http.StatusOK)
+	return response.SvcRespSuccess(&res, http.StatusOK)
 }
 
 func (s *authSvc) RefreshToken(ctx context.Context, req *dto.RefreshTokenReq) response.SvcRes {
@@ -295,6 +317,61 @@ func cleanEmail(email string) (string, error) {
 	}
 
 	return email, nil
+}
+
+// storeDevice signs other users out of this device, then marks it as logged in for userID:
+// an existing device of this user is updated, a new one is created.
+func (s *authSvc) storeDevice(ctx context.Context, tx *gorm.DB, userID uint, req *dto.DeviceReq) error {
+	deviceRepo := s.deviceRepo.WithTx(tx)
+	if err := deviceRepo.LogoutOtherUsers(ctx, req.UID, userID); err != nil {
+		return fmt.Errorf("logout other users from device: %w", err)
+	}
+
+	device, err := deviceRepo.FindByUserWithUID(ctx, userID, req.UID)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return fmt.Errorf("find device: %w", err)
+	}
+
+	if device != nil {
+		device.Name = req.Name
+		device.OS = enums.DeviceOSEnum(req.OS)
+		device.Version = req.Version
+		device.UserAgent = truncate(req.UserAgent, 300)
+		device.LoginAt = time.Now()
+		device.IsLogin = true
+		if err := deviceRepo.Save(ctx, device); err != nil {
+			return fmt.Errorf("update device: %w", err)
+		}
+		return nil
+	}
+
+	_, err = deviceRepo.Create(ctx, &model.Device{
+		UserID:    userID,
+		Name:      req.Name,
+		OS:        enums.DeviceOSEnum(req.OS),
+		Version:   req.Version,
+		UID:       req.UID,
+		UserAgent: truncate(req.UserAgent, 300),
+		LoginAt:   time.Now(),
+		IsLogin:   true,
+	})
+	if err != nil {
+		return fmt.Errorf("create device: %w", err)
+	}
+
+	return nil
+}
+
+// truncate cuts s to at most max bytes without splitting a UTF-8 character.
+func truncate(s string, max int) string {
+	if len(s) <= max {
+		return s
+	}
+	s = s[:max]
+	for !utf8.ValidString(s) {
+		s = s[:len(s)-1]
+	}
+	return s
 }
 
 func (s *authSvc) issueTokens(userID uint) (*dto.TokenRes, error) {
