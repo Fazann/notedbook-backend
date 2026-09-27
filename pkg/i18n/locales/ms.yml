@@ -29,6 +29,7 @@ USERNAME_TAKEN: "Nama pengguna ini telah digunakan."
 EMAIL_TAKEN: "E-mel ini telah didaftarkan."
 TOO_MANY_ATTEMPTS: "Terlalu banyak percubaan. Sila cuba lagi dalam {minutes} minit."
 INVALID_CREDENTIALS: "Nama pengguna atau kata laluan tidak betul."
+INCORRECT_PASSWORD: "Kata laluan semasa tidak betul."
 ACCOUNT_DISABLED: "Akaun ini telah dinyahaktifkan."
 TOKEN_EXPIRED: "Sesi anda telah tamat. Sila log masuk semula."
 

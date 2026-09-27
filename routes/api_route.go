@@ -43,4 +43,5 @@ func initAPIRoute(r *gin.Engine) {
 	auth.POST("/refresh-token", rl.LimitIP(60, time.Minute), h.authHandler.RefreshToken)
 	auth.GET("/profile", authRequired, h.userHandler.GetProfile)
 	auth.PATCH("/profile", authRequired, h.userHandler.UpdateProfile)
+	auth.PUT("/change-password", authRequired, rl.LimitIP(60, time.Minute), h.userHandler.ChangePassword)
 }

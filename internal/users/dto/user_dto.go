@@ -25,3 +25,9 @@ type UpdateProfileReq struct {
 	// ID of an uploaded image that is not used by another record yet.
 	AvatarID *uint `json:"avatar_id" binding:"omitempty,min=1" example:"10"`
 }
+
+type ChangePasswordReq struct {
+	UserID          uint   `json:"-"`
+	CurrentPassword string `json:"current_password" binding:"required,min=6,max=20"`
+	NewPassword     string `json:"new_password" binding:"required,min=6,max=20"`
+}

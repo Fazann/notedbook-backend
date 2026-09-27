@@ -14,6 +14,7 @@ import (
 	"github.com/Fazann/notedbook-backend/pkg/i18n"
 	"github.com/Fazann/notedbook-backend/pkg/logger"
 	"github.com/Fazann/notedbook-backend/pkg/response"
+	"github.com/Fazann/notedbook-backend/pkg/utils"
 	model "github.com/Fazann/notedbook-backend/shared/models"
 	"gorm.io/gorm"
 )
@@ -21,6 +22,7 @@ import (
 type UserServiceImpl interface {
 	GetProfile(ctx context.Context, userID uint) response.SvcRes
 	UpdateProfile(ctx context.Context, userID uint, req *dto.UpdateProfileReq) response.SvcRes
+	ChangePassword(ctx context.Context, req *dto.ChangePasswordReq) response.SvcRes
 }
 
 // AttachmentUsage is the part of the attachment service this module uses. It is passed in by
@@ -151,6 +153,35 @@ func (s *userSvc) UpdateProfile(ctx context.Context, userID uint, req *dto.Updat
 	}
 
 	return s.GetProfile(ctx, userID)
+}
+
+func (s *userSvc) ChangePassword(ctx context.Context, req *dto.ChangePasswordReq) response.SvcRes {
+	user, err := s.userRepo.FindOne(ctx, req.UserID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return response.SvcRespErr(i18n.RecordNotFound, http.StatusNotFound)
+		}
+		return response.SvcRespErr(err, http.StatusInternalServerError)
+	}
+	if user.IsDisabled {
+		return response.SvcRespErr(i18n.AccountDisabled, http.StatusForbidden)
+	}
+
+	if err := utils.CompareHash(user.Password, req.CurrentPassword); err != nil {
+		return response.SvcRespErr(i18n.IncorrectPassword, http.StatusBadRequest)
+	}
+
+	newHash, err := utils.GenerateHash(req.NewPassword)
+	if err != nil {
+		return response.SvcRespErr(fmt.Errorf("hash password: %w", err), http.StatusInternalServerError)
+	}
+
+	updates := map[string]any{"password": newHash, "updated_by": req.UserID}
+	if err := s.userRepo.Update(ctx, map[string]any{"id": req.UserID}, updates); err != nil {
+		return response.SvcRespErr(fmt.Errorf("change password: %w", err), http.StatusInternalServerError)
+	}
+
+	return s.GetProfile(ctx, req.UserID)
 }
 
 // isTakenByOther reports whether find returns a user other than userID.

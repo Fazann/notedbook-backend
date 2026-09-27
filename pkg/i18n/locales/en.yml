@@ -32,6 +32,7 @@ USERNAME_TAKEN: "This username is already taken."
 EMAIL_TAKEN: "This email is already registered."
 TOO_MANY_ATTEMPTS: "Too many attempts. Please try again in {minutes} minutes."
 INVALID_CREDENTIALS: "The username or password is incorrect."
+INCORRECT_PASSWORD: "The current password is incorrect."
 ACCOUNT_DISABLED: "This account has been disabled."
 TOKEN_EXPIRED: "Your session has expired. Please sign in again."
 

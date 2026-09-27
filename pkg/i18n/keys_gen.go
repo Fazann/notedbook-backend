@@ -45,6 +45,8 @@ const (
 	TooManyAttempts Key = "TOO_MANY_ATTEMPTS"
 	// The username or password is incorrect.
 	InvalidCredentials Key = "INVALID_CREDENTIALS"
+	// The current password is incorrect.
+	IncorrectPassword Key = "INCORRECT_PASSWORD"
 	// This account has been disabled.
 	AccountDisabled Key = "ACCOUNT_DISABLED"
 	// Your session has expired. Please sign in again.
@@ -96,6 +98,7 @@ var AllKeys = []Key{
 	EmailTaken,
 	TooManyAttempts,
 	InvalidCredentials,
+	IncorrectPassword,
 	AccountDisabled,
 	TokenExpired,
 	ValidationFailed,

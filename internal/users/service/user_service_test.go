@@ -11,6 +11,7 @@ import (
 	"github.com/Fazann/notedbook-backend/internal/users/repo"
 	"github.com/Fazann/notedbook-backend/pkg/enums"
 	"github.com/Fazann/notedbook-backend/pkg/i18n"
+	"github.com/Fazann/notedbook-backend/pkg/utils"
 	model "github.com/Fazann/notedbook-backend/shared/models"
 	"gorm.io/gorm"
 )
@@ -151,6 +152,54 @@ func TestUpdateProfile(t *testing.T) {
 			}
 			if !reflect.DeepEqual(attachments.deleted, tt.wantDeleted) {
 				t.Errorf("Delete calls = %v, want %v", attachments.deleted, tt.wantDeleted)
+			}
+		})
+	}
+}
+
+func TestChangePassword(t *testing.T) {
+	hash, err := utils.GenerateHash("oldpass")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tests := []struct {
+		name       string
+		current    string
+		disabled   bool
+		wantStatus int
+		wantErr    error
+	}{
+		{name: "changed", current: "oldpass", wantStatus: http.StatusOK},
+		{name: "wrong current password", current: "wrong", wantStatus: http.StatusBadRequest, wantErr: i18n.IncorrectPassword},
+		{name: "disabled account", current: "oldpass", disabled: true, wantStatus: http.StatusForbidden, wantErr: i18n.AccountDisabled},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			users := &fakeUserRepo{users: map[uint]*model.User{
+				1: {BaseModelID: model.BaseModelID{ID: 1}, Username: "me", Password: hash, IsDisabled: tt.disabled},
+			}}
+			svc := &userSvc{userRepo: users}
+
+			res := svc.ChangePassword(context.Background(), &dto.ChangePasswordReq{UserID: 1, CurrentPassword: tt.current, NewPassword: "newpass"})
+
+			if res.StatusCode != tt.wantStatus {
+				t.Fatalf("status = %d, want %d (err %v)", res.StatusCode, tt.wantStatus, res.Error)
+			}
+			if tt.wantErr != nil {
+				if key, _, _ := i18n.FromError(res.Error); key != tt.wantErr {
+					t.Errorf("error = %v, want %v", res.Error, tt.wantErr)
+				}
+				if users.updates != nil {
+					t.Errorf("updates = %v, want none", users.updates)
+				}
+				return
+			}
+			if _, ok := res.Data.(*dto.ProfileRes); !ok {
+				t.Errorf("data = %T, want *dto.ProfileRes", res.Data)
+			}
+			newHash, _ := users.updates["password"].(string)
+			if utils.CompareHash(newHash, "newpass") != nil {
+				t.Errorf("stored password does not match the new one")
 			}
 		})
 	}
