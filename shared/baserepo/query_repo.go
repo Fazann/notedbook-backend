@@ -1,6 +1,7 @@
 package baserepo
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"sort"
@@ -32,6 +33,26 @@ var opMap = map[string]string{
 
 func NewQueryBuilder[T any](db *gorm.DB) *QueryBuilder[T] {
 	return &QueryBuilder[T]{db: db}
+}
+
+// Paginate counts the rows matching the applied filters, then loads one page (1-based) of limit rows.
+func (q *QueryBuilder[T]) Paginate(ctx context.Context, page, limit int) ([]T, int64, error) {
+	// A new session, so Count and Find do not share (and pile up) statement clauses.
+	tx := q.db.WithContext(ctx).Session(&gorm.Session{})
+
+	var total int64
+	if err := tx.Model(new(T)).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	rows := []T{}
+	if total == 0 {
+		return rows, 0, nil
+	}
+	if err := tx.Offset((page - 1) * limit).Limit(limit).Find(&rows).Error; err != nil {
+		return nil, 0, err
+	}
+	return rows, total, nil
 }
 
 func formatOrder(v string) string {

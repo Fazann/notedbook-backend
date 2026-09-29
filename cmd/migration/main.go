@@ -16,6 +16,8 @@ func main() {
 		model.User{},
 		model.RefreshToken{},
 		model.Device{},
+		model.ExpenseCategory{},
+		model.ExpenseCategoryTr{},
 	)
 
 	if err != nil {

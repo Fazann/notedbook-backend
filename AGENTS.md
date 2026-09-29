@@ -41,8 +41,11 @@ gofmt -l .      # must print nothing
 go test ./...   # must pass
 ```
 
-`make seed`, `make build` and `make test-util` reference files that do not exist yet
-(`cmd/seed`, `Dockerfile`, `tests/util`). Do not rely on them; say so if a task needs them.
+`make build` and `make test-util` reference files that do not exist yet (`Dockerfile`, `tests/util`).
+Do not rely on them; say so if a task needs them.
+
+`make seed` runs only `cmd/seed/main.go` (`go run` on one file), so keep seed logic in the module
+(e.g. `internal/exspense/service/category_seed.go`) and call it from `main.go`. Seeds must be safe to run again.
 
 `docs/` is git-ignored and `routes` imports it: run `make swagger` before building on a fresh clone.
 

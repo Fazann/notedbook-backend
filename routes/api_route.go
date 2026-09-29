@@ -6,6 +6,7 @@ import (
 	"github.com/Fazann/notedbook-backend/config"
 	"github.com/Fazann/notedbook-backend/internal/attachments/handler"
 	attachmentService "github.com/Fazann/notedbook-backend/internal/attachments/service"
+	expenseHandler "github.com/Fazann/notedbook-backend/internal/exspense/handler"
 	userHandler "github.com/Fazann/notedbook-backend/internal/users/handler"
 	"github.com/Fazann/notedbook-backend/pkg/redis"
 	"github.com/Fazann/notedbook-backend/shared/middleware"
@@ -16,6 +17,7 @@ type handlers struct {
 	attachmentHandler handler.AttachmentHandler
 	authHandler       userHandler.AuthHandler
 	userHandler       userHandler.UserHandler
+	categoryHandler   expenseHandler.CategoryHandler
 }
 
 func newHandlers() *handlers {
@@ -23,6 +25,7 @@ func newHandlers() *handlers {
 		attachmentHandler: *handler.NewAttachmentHandler(),
 		authHandler:       *userHandler.NewAuthHandler(),
 		userHandler:       *userHandler.NewUserHandler(attachmentService.NewAttachmentSvc()),
+		categoryHandler:   *expenseHandler.NewCategoryHandler(),
 	}
 }
 
@@ -47,4 +50,12 @@ func initAPIRoute(r *gin.Engine) {
 	auth.GET("/profile", authRequired, h.userHandler.GetProfile)
 	auth.PATCH("/profile", authRequired, h.userHandler.UpdateProfile)
 	auth.PUT("/change-password", authRequired, rl.LimitIP(60, time.Minute), h.userHandler.ChangePassword)
+
+	categories := api.Group("/categories", authRequired)
+	categories.GET("", h.categoryHandler.List)
+	categories.GET("/all", h.categoryHandler.ListAll)
+	categories.GET("/:id", h.categoryHandler.GetDetail)
+	categories.POST("", h.categoryHandler.Create)
+	categories.PUT("/:id", h.categoryHandler.Update)
+	categories.DELETE("/:id", h.categoryHandler.Delete)
 }

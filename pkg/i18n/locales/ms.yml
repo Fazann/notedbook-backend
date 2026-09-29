@@ -22,6 +22,14 @@ INVALID_ATTACHMENT_TYPE: "Jenis fail tidak dibenarkan. Jenis yang dibenarkan: {t
 # Users
 INVALID_FULLNAME: "Nama penuh tidak sah."
 
+# Expense categories
+CATEGORY_IS_DEFAULT: "Kategori lalai tidak boleh diubah atau dipadam."
+CATEGORY_NAME_TAKEN: "Anda sudah mempunyai kategori dengan nama ini."
+INVALID_CATEGORY_NAME: "Nama kategori mestilah 1 hingga {max} aksara."
+INVALID_CATEGORY_ICON: "Ikon kategori tidak sah."
+INVALID_CATEGORY_COLOR: "Warna kategori tidak sah."
+UNSUPPORTED_LANGUAGE: "Hanya bahasa ini disokong: {langs}."
+
 # Auth
 INVALID_USERNAME: "Nama pengguna tidak sah."
 INVALID_EMAIL: "Alamat e-mel tidak sah."

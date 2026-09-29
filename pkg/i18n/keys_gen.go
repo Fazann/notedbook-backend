@@ -33,6 +33,18 @@ const (
 	InvalidAttachmentType Key = "INVALID_ATTACHMENT_TYPE"
 	// The full name is not valid.
 	InvalidFullname Key = "INVALID_FULLNAME"
+	// Default categories cannot be changed or deleted.
+	CategoryIsDefault Key = "CATEGORY_IS_DEFAULT"
+	// You already have a category with this name.
+	CategoryNameTaken Key = "CATEGORY_NAME_TAKEN"
+	// The category name must be 1 to {max} characters.
+	InvalidCategoryName Key = "INVALID_CATEGORY_NAME"
+	// The category icon is not valid.
+	InvalidCategoryIcon Key = "INVALID_CATEGORY_ICON"
+	// The category color is not valid.
+	InvalidCategoryColor Key = "INVALID_CATEGORY_COLOR"
+	// Only these languages are supported: {langs}.
+	UnsupportedLanguage Key = "UNSUPPORTED_LANGUAGE"
 	// The username is not valid.
 	InvalidUsername Key = "INVALID_USERNAME"
 	// The email address is not valid.
@@ -98,6 +110,12 @@ var AllKeys = []Key{
 	AttachmentInUse,
 	InvalidAttachmentType,
 	InvalidFullname,
+	CategoryIsDefault,
+	CategoryNameTaken,
+	InvalidCategoryName,
+	InvalidCategoryIcon,
+	InvalidCategoryColor,
+	UnsupportedLanguage,
 	InvalidUsername,
 	InvalidEmail,
 	UsernameTaken,

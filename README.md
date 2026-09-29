@@ -60,7 +60,7 @@ Copy `.env.example` to `.env`. All variables are read in `config/config.go`.
 |---|---|
 | `make run` | Starts the API with hot reload (`air`, config in `.air.toml`). Rebuilds `./cmd/app` into `tmp/main` on change. |
 | `make migrate` | Runs `cmd/migration`: connects to PostgreSQL and creates / updates tables with GORM `AutoMigrate`. |
-| `make seed` | Runs `cmd/seed` to insert sample data. `cmd/seed/main.go` does not exist yet. |
+| `make seed` | Runs `cmd/seed`: inserts the 10 default expense categories (shared by every user, with en/km/ms names). Safe to run again; existing defaults are skipped. Run `make migrate` first. |
 | `make swagger` | Formats the Swagger annotations and generates `docs/` (`docs.go`, `swagger.json`, `swagger.yaml`) with swag v1.16.6. Run it after changing a handler annotation or a response DTO. |
 | `make locale` | Checks `pkg/i18n/locales/*.yml` (same keys and `{placeholders}` in every language) and generates the key constants in `pkg/i18n/keys_gen.go`. Run it after adding or renaming a translation key. |
 | `make build` | Builds the Docker image `clinic-api:latest` for `linux/amd64`. Needs a `Dockerfile`, which does not exist yet, and the image name is still the one from the clinic project. |
