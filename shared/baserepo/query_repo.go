@@ -55,6 +55,15 @@ func (q *QueryBuilder[T]) Paginate(ctx context.Context, page, limit int) ([]T, i
 	return rows, total, nil
 }
 
+// Find loads every row matching the applied filters, without paging.
+func (q *QueryBuilder[T]) Find(ctx context.Context) ([]T, error) {
+	rows := []T{}
+	if err := q.db.WithContext(ctx).Find(&rows).Error; err != nil {
+		return nil, err
+	}
+	return rows, nil
+}
+
 func formatOrder(v string) string {
 	if v == "" {
 		return v

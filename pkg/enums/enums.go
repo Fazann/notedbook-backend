@@ -43,3 +43,18 @@ var CategoryColorValues = []string{
 	"chart-1", "chart-2", "chart-3", "chart-4", "chart-5",
 	"red", "orange", "amber", "green", "teal", "blue", "violet", "pink", "slate",
 }
+
+// CurrencyEnum is an ISO 4217 code. Amounts are stored in minor units: USD cents, KHR riel, MYR sen.
+type CurrencyEnum string
+
+const (
+	CurrencyEnumUSD    CurrencyEnum = "USD"
+	CurrencyEnumKHRiel CurrencyEnum = "KHR"
+	CurrencyEnumMYR    CurrencyEnum = "MYR"
+)
+
+var CurrencyValues = []string{
+	string(CurrencyEnumUSD),
+	string(CurrencyEnumKHRiel),
+	string(CurrencyEnumMYR),
+}

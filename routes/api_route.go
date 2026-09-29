@@ -18,6 +18,7 @@ type handlers struct {
 	authHandler       userHandler.AuthHandler
 	userHandler       userHandler.UserHandler
 	categoryHandler   expenseHandler.CategoryHandler
+	expenseHandler    expenseHandler.ExpenseHandler
 }
 
 func newHandlers() *handlers {
@@ -26,6 +27,7 @@ func newHandlers() *handlers {
 		authHandler:       *userHandler.NewAuthHandler(),
 		userHandler:       *userHandler.NewUserHandler(attachmentService.NewAttachmentSvc()),
 		categoryHandler:   *expenseHandler.NewCategoryHandler(),
+		expenseHandler:    *expenseHandler.NewExpenseHandler(),
 	}
 }
 
@@ -53,9 +55,15 @@ func initAPIRoute(r *gin.Engine) {
 
 	categories := api.Group("/categories", authRequired)
 	categories.GET("", h.categoryHandler.List)
-	categories.GET("/all", h.categoryHandler.ListAll)
 	categories.GET("/:id", h.categoryHandler.GetDetail)
 	categories.POST("", h.categoryHandler.Create)
 	categories.PUT("/:id", h.categoryHandler.Update)
 	categories.DELETE("/:id", h.categoryHandler.Delete)
+
+	expenses := api.Group("/expenses", authRequired)
+	expenses.GET("", h.expenseHandler.List)
+	expenses.GET("/:id", h.expenseHandler.GetDetail)
+	expenses.POST("", h.expenseHandler.Create)
+	expenses.PUT("/:id", h.expenseHandler.Update)
+	expenses.DELETE("/:id", h.expenseHandler.Delete)
 }

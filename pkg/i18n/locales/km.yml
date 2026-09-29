@@ -30,6 +30,11 @@ INVALID_CATEGORY_ICON: "រូបតំណាងប្រភេទមិនត�
 INVALID_CATEGORY_COLOR: "ពណ៌ប្រភេទមិនត្រឹមត្រូវទេ។"
 UNSUPPORTED_LANGUAGE: "គាំទ្រតែភាសាទាំងនេះប៉ុណ្ណោះ៖ {langs}។"
 
+# Expenses
+INVALID_EXPENSE_CATEGORY: "ប្រភេទដែលបានជ្រើសរើសមិនមានទេ។"
+INVALID_CURRENCY: "គាំទ្រតែរូបិយប័ណ្ណទាំងនេះប៉ុណ្ណោះ៖ {currencies}។"
+INVALID_AMOUNT: "ចំនួនទឹកប្រាក់ត្រូវនៅចន្លោះពី {min} ដល់ {max} ដោយមានខ្ទង់ទសភាគមិនលើសពី {decimals}។"
+
 # Auth
 INVALID_USERNAME: "ឈ្មោះអ្នកប្រើមិនត្រឹមត្រូវទេ។"
 INVALID_EMAIL: "អាសយដ្ឋានអ៊ីមែលមិនត្រឹមត្រូវទេ។"

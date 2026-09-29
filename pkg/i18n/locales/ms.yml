@@ -30,6 +30,11 @@ INVALID_CATEGORY_ICON: "Ikon kategori tidak sah."
 INVALID_CATEGORY_COLOR: "Warna kategori tidak sah."
 UNSUPPORTED_LANGUAGE: "Hanya bahasa ini disokong: {langs}."
 
+# Expenses
+INVALID_EXPENSE_CATEGORY: "Kategori yang dipilih tidak wujud."
+INVALID_CURRENCY: "Hanya mata wang ini disokong: {currencies}."
+INVALID_AMOUNT: "Jumlah mestilah antara {min} dan {max}, dengan paling banyak {decimals} tempat perpuluhan."
+
 # Auth
 INVALID_USERNAME: "Nama pengguna tidak sah."
 INVALID_EMAIL: "Alamat e-mel tidak sah."

@@ -33,6 +33,11 @@ INVALID_CATEGORY_ICON: "The category icon is not valid."
 INVALID_CATEGORY_COLOR: "The category color is not valid."
 UNSUPPORTED_LANGUAGE: "Only these languages are supported: {langs}."
 
+# Expenses
+INVALID_EXPENSE_CATEGORY: "The selected category does not exist."
+INVALID_CURRENCY: "Only these currencies are supported: {currencies}."
+INVALID_AMOUNT: "The amount must be between {min} and {max}, with at most {decimals} decimal places."
+
 # Auth
 INVALID_USERNAME: "The username is not valid."
 INVALID_EMAIL: "The email address is not valid."

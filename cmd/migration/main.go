@@ -18,6 +18,7 @@ func main() {
 		model.Device{},
 		model.ExpenseCategory{},
 		model.ExpenseCategoryTr{},
+		model.Expense{},
 	)
 
 	if err != nil {

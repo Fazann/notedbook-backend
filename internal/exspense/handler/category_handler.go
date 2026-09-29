@@ -138,7 +138,7 @@ func (h *CategoryHandler) Create(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			id				path		int				true	"Category ID"	minimum(1)
+//	@Param			id				path		int						true	"Category ID"	minimum(1)
 //	@Param			body			body		dto.CategoryUpdateReq	true	"Fields to change"
 //	@Param			Accept-Language	header		string					false	"Language of names and errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.CategoryRes}

@@ -45,6 +45,12 @@ const (
 	InvalidCategoryColor Key = "INVALID_CATEGORY_COLOR"
 	// Only these languages are supported: {langs}.
 	UnsupportedLanguage Key = "UNSUPPORTED_LANGUAGE"
+	// The selected category does not exist.
+	InvalidExpenseCategory Key = "INVALID_EXPENSE_CATEGORY"
+	// Only these currencies are supported: {currencies}.
+	InvalidCurrency Key = "INVALID_CURRENCY"
+	// The amount must be between {min} and {max}, with at most {decimals} decimal places.
+	InvalidAmount Key = "INVALID_AMOUNT"
 	// The username is not valid.
 	InvalidUsername Key = "INVALID_USERNAME"
 	// The email address is not valid.
@@ -116,6 +122,9 @@ var AllKeys = []Key{
 	InvalidCategoryIcon,
 	InvalidCategoryColor,
 	UnsupportedLanguage,
+	InvalidExpenseCategory,
+	InvalidCurrency,
+	InvalidAmount,
 	InvalidUsername,
 	InvalidEmail,
 	UsernameTaken,
