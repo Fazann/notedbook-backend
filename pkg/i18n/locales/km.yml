@@ -35,6 +35,9 @@ INVALID_EXPENSE_CATEGORY: "ប្រភេទដែលបានជ្រើស�
 INVALID_CURRENCY: "គាំទ្រតែរូបិយប័ណ្ណទាំងនេះប៉ុណ្ណោះ៖ {currencies}។"
 INVALID_AMOUNT: "ចំនួនទឹកប្រាក់ត្រូវនៅចន្លោះពី {min} ដល់ {max} ដោយមានខ្ទង់ទសភាគមិនលើសពី {decimals}។"
 
+# Plans
+INVALID_PLAN_AREA: "វិស័យផែនការដែលបានជ្រើសរើសមិនមានទេ។"
+
 # Auth
 INVALID_USERNAME: "ឈ្មោះអ្នកប្រើមិនត្រឹមត្រូវទេ។"
 INVALID_EMAIL: "អាសយដ្ឋានអ៊ីមែលមិនត្រឹមត្រូវទេ។"

@@ -51,6 +51,8 @@ const (
 	InvalidCurrency Key = "INVALID_CURRENCY"
 	// The amount must be between {min} and {max}, with at most {decimals} decimal places.
 	InvalidAmount Key = "INVALID_AMOUNT"
+	// The selected plan area does not exist.
+	InvalidPlanArea Key = "INVALID_PLAN_AREA"
 	// The username is not valid.
 	InvalidUsername Key = "INVALID_USERNAME"
 	// The email address is not valid.
@@ -125,6 +127,7 @@ var AllKeys = []Key{
 	InvalidExpenseCategory,
 	InvalidCurrency,
 	InvalidAmount,
+	InvalidPlanArea,
 	InvalidUsername,
 	InvalidEmail,
 	UsernameTaken,

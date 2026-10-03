@@ -21,6 +21,8 @@ type handlers struct {
 	categoryHandler   expenseHandler.CategoryHandler
 	expenseHandler    expenseHandler.ExpenseHandler
 	planAreaHandler   planHandler.PlanAreaHandler
+	planHandler       planHandler.PlanHandler
+	planStepHandler   planHandler.PlanStepHandler
 }
 
 func newHandlers() *handlers {
@@ -31,6 +33,8 @@ func newHandlers() *handlers {
 		categoryHandler:   *expenseHandler.NewCategoryHandler(),
 		expenseHandler:    *expenseHandler.NewExpenseHandler(),
 		planAreaHandler:   *planHandler.NewPlanAreaHandler(),
+		planHandler:       *planHandler.NewPlanHandler(),
+		planStepHandler:   *planHandler.NewPlanStepHandler(),
 	}
 }
 
@@ -72,4 +76,18 @@ func initAPIRoute(r *gin.Engine) {
 
 	planAreas := api.Group("/plan-areas", authRequired)
 	planAreas.GET("", h.planAreaHandler.List)
+
+	plans := api.Group("/plans", authRequired)
+	plans.GET("", h.planHandler.List)
+	plans.GET("/:id", h.planHandler.GetDetail)
+	plans.POST("", h.planHandler.Create)
+	plans.PUT("/:id", h.planHandler.Update)
+	plans.PATCH("/:id/status", h.planHandler.UpdateStatus)
+	plans.DELETE("/:id", h.planHandler.Delete)
+	plans.POST("/:id/steps", h.planStepHandler.Create)
+
+	steps := api.Group("/steps", authRequired)
+	steps.PUT("/:id", h.planStepHandler.Update)
+	steps.PATCH("/:id/toggle", h.planStepHandler.Toggle)
+	steps.DELETE("/:id", h.planStepHandler.Delete)
 }

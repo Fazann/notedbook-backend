@@ -4,9 +4,9 @@ import "time"
 
 type PlanStep struct {
 	BaseModelID
-	PlanID  uint       `gorm:"index"`
-	Title   string     `gorm:"type:varchar(255)"`
-	Done    bool       `gorm:"default:0"`
+	PlanID  uint       `gorm:"type:bigint;not null;index"`
+	Title   string     `gorm:"type:varchar(255);not null"`
+	Done    bool       `gorm:"not null;default:false"`
 	DueDate *time.Time `gorm:"column:due_date;type:date"`
 	BaseModelDateColumns
 }

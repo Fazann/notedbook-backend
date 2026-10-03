@@ -35,6 +35,9 @@ INVALID_EXPENSE_CATEGORY: "Kategori yang dipilih tidak wujud."
 INVALID_CURRENCY: "Hanya mata wang ini disokong: {currencies}."
 INVALID_AMOUNT: "Jumlah mestilah antara {min} dan {max}, dengan paling banyak {decimals} tempat perpuluhan."
 
+# Plans
+INVALID_PLAN_AREA: "Kawasan pelan yang dipilih tidak wujud."
+
 # Auth
 INVALID_USERNAME: "Nama pengguna tidak sah."
 INVALID_EMAIL: "Alamat e-mel tidak sah."

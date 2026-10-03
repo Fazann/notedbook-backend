@@ -21,6 +21,8 @@ func main() {
 		model.Expense{},
 		model.PlanArea{},
 		model.PlanAreaTr{},
+		model.Plan{},
+		model.PlanStep{},
 	)
 
 	if err != nil {
