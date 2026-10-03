@@ -55,10 +55,17 @@ func (r *userRepo) FindByEmail(ctx context.Context, email string) (*model.User, 
 	return &user, nil
 }
 
+// FindByUsernameOrEmail finds a user with this username, or with this email when email is not empty
+// (email is optional, so an empty one must not match every user without an email).
 func (r *userRepo) FindByUsernameOrEmail(ctx context.Context, username, email string) (*model.User, error) {
 	var user model.User
-	if err := r.db.WithContext(ctx).Model(&model.User{}).
-		Where("username = ? OR email = ?", username, email).First(&user).Error; err != nil {
+	query := r.db.WithContext(ctx).Model(&model.User{})
+	if email == "" {
+		query = query.Where("username = ?", username)
+	} else {
+		query = query.Where("username = ? OR email = ?", username, email)
+	}
+	if err := query.First(&user).Error; err != nil {
 		return nil, err
 	}
 

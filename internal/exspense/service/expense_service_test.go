@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"reflect"
+	"slices"
 	"testing"
 	"time"
 
@@ -23,6 +24,11 @@ type fakeExpenseRepo struct {
 	updates  map[string]any
 	deleted  []uint
 	filter   *repo.ExpenseFilter
+	// [from, to] category ID pairs passed to ReassignCategory.
+	reassigned [][2]uint
+	sumFrom    time.Time
+	sumTo      time.Time
+	sums       []repo.CategoryTotal
 }
 
 func newFakeExpenseRepo() *fakeExpenseRepo {
@@ -48,6 +54,33 @@ func (r *fakeExpenseRepo) FindOneByID(_ context.Context, userID, id uint) (*mode
 func (r *fakeExpenseRepo) List(_ context.Context, _ uint, filter *repo.ExpenseFilter, _, _ int) ([]model.Expense, int64, error) {
 	r.filter = filter
 	return []model.Expense{*r.expenses[1]}, 21, nil
+}
+
+func (r *fakeExpenseRepo) WithTx(_ *gorm.DB) repo.ExpenseRepoImpl { return r }
+
+func (r *fakeExpenseRepo) SumByCategory(_ context.Context, _ uint, from, to time.Time) ([]repo.CategoryTotal, error) {
+	r.sumFrom, r.sumTo = from, to
+	return r.sums, nil
+}
+
+func (r *fakeExpenseRepo) CountByCategory(_ context.Context, userID uint, categoryIDs []uint) (map[uint]int64, error) {
+	counts := map[uint]int64{}
+	for _, e := range r.expenses {
+		if e.UserID == userID && slices.Contains(categoryIDs, e.CategoryID) {
+			counts[e.CategoryID]++
+		}
+	}
+	return counts, nil
+}
+
+func (r *fakeExpenseRepo) ReassignCategory(_ context.Context, userID, fromID, toID uint) error {
+	r.reassigned = append(r.reassigned, [2]uint{fromID, toID})
+	for _, e := range r.expenses {
+		if e.UserID == userID && e.CategoryID == fromID {
+			e.CategoryID = toID
+		}
+	}
+	return nil
 }
 
 func (r *fakeExpenseRepo) Create(_ context.Context, e *model.Expense) (*model.Expense, error) {
@@ -283,5 +316,45 @@ func TestExpenseListFilterDefaults(t *testing.T) {
 	}
 	if !filter.SpentFrom.IsZero() || filter.SortAmount != nil || *filter.SortSpentAt != "desc" || *filter.SortID != "desc" {
 		t.Errorf("filter = %+v", filter)
+	}
+}
+
+func TestExpenseSummary(t *testing.T) {
+	r := newFakeExpenseRepo()
+	r.sums = []repo.CategoryTotal{
+		{CategoryID: 1, Currency: "KHR", Amount: 40000, Count: 2},
+		{CategoryID: 1, Currency: "USD", Amount: 1250, Count: 1},
+		{CategoryID: 2, Currency: "USD", Amount: 5000, Count: 3},
+	}
+
+	res := newTestExpenseSvc(r).Summary(context.Background(), 1, &dto.ExpenseSummaryReq{Month: "2026-12"})
+
+	if res.Error != nil || res.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, err = %v", res.StatusCode, res.Error)
+	}
+	if !r.sumFrom.Equal(time.Date(2026, 12, 1, 0, 0, 0, 0, time.UTC)) || !r.sumTo.Equal(time.Date(2027, 1, 1, 0, 0, 0, 0, time.UTC)) {
+		t.Errorf("month range = %v – %v", r.sumFrom, r.sumTo)
+	}
+	got := res.Data.(*dto.ExpenseSummaryRes)
+	// Totals follow enums.CurrencyValues (USD before KHR) and never mix currencies.
+	wantTotals := []dto.CurrencyTotalRes{
+		{Currency: "USD", Amount: "62.50", Count: 4},
+		{Currency: "KHR", Amount: "40000", Count: 2},
+	}
+	if got.Month != "2026-12" || !reflect.DeepEqual(got.Totals, wantTotals) {
+		t.Errorf("month = %q, totals = %+v", got.Month, got.Totals)
+	}
+	if len(got.ByCategory) != 3 || got.ByCategory[1] != (dto.CategoryTotalRes{CategoryID: 1, Currency: "USD", Amount: "12.50", Count: 1}) {
+		t.Errorf("by_category = %+v", got.ByCategory)
+	}
+}
+
+func TestExpenseSummaryEmptyMonth(t *testing.T) {
+	res := newTestExpenseSvc(newFakeExpenseRepo()).Summary(context.Background(), 1, &dto.ExpenseSummaryReq{Month: "2026-01"})
+
+	got := res.Data.(*dto.ExpenseSummaryRes)
+	// Empty lists, not nil, so the JSON has [] instead of null.
+	if got.Totals == nil || got.ByCategory == nil || len(got.Totals)+len(got.ByCategory) != 0 {
+		t.Errorf("summary = %+v", got)
 	}
 }

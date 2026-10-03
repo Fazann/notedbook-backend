@@ -43,6 +43,10 @@ const (
 	InvalidCategoryIcon Key = "INVALID_CATEGORY_ICON"
 	// The category color is not valid.
 	InvalidCategoryColor Key = "INVALID_CATEGORY_COLOR"
+	// This category is used by {count} expenses. Choose a category to move them to.
+	CategoryInUse Key = "CATEGORY_IN_USE"
+	// Choose another existing category to move the expenses to.
+	InvalidReassignCategory Key = "INVALID_REASSIGN_CATEGORY"
 	// Only these languages are supported: {langs}.
 	UnsupportedLanguage Key = "UNSUPPORTED_LANGUAGE"
 	// The selected category does not exist.
@@ -135,6 +139,8 @@ var AllKeys = []Key{
 	InvalidCategoryName,
 	InvalidCategoryIcon,
 	InvalidCategoryColor,
+	CategoryInUse,
+	InvalidReassignCategory,
 	UnsupportedLanguage,
 	InvalidExpenseCategory,
 	InvalidCurrency,

@@ -31,6 +31,7 @@ type ExpenseServiceImpl interface {
 	Create(ctx context.Context, userID uint, req *dto.ExpenseReq) response.SvcRes
 	Update(ctx context.Context, userID, id uint, req *dto.ExpenseUpdateReq) response.SvcRes
 	Delete(ctx context.Context, userID, id uint) response.SvcRes
+	Summary(ctx context.Context, userID uint, req *dto.ExpenseSummaryReq) response.SvcRes
 }
 
 type expenseSvc struct {
@@ -176,6 +177,21 @@ func (s *expenseSvc) Delete(ctx context.Context, userID, id uint) response.SvcRe
 }
 
 // findOwn returns the user's expense; ok is false with the error response otherwise.
+// Summary totals the user's expenses of one month per currency and per category (and currency).
+func (s *expenseSvc) Summary(ctx context.Context, userID uint, req *dto.ExpenseSummaryReq) response.SvcRes {
+	from, to, err := monthRange(req.Month)
+	if err != nil {
+		return response.SvcRespErr(err, http.StatusBadRequest)
+	}
+
+	rows, err := s.expenseRepo.SumByCategory(ctx, userID, from, to)
+	if err != nil {
+		return response.SvcRespErr(fmt.Errorf("sum expenses: %w", err), http.StatusInternalServerError)
+	}
+
+	return response.SvcRespSuccess(toExpenseSummaryRes(req.Month, rows), http.StatusOK)
+}
+
 func (s *expenseSvc) findOwn(ctx context.Context, userID, id uint) (*model.Expense, response.SvcRes, bool) {
 	expense, err := s.expenseRepo.FindOneByID(ctx, userID, id)
 	if err != nil {
@@ -276,6 +292,43 @@ func toExpenseRes(expense *model.Expense) *dto.ExpenseRes {
 		CreatedAt:  expense.CreatedAt,
 		UpdatedAt:  expense.UpdatedAt,
 	}
+}
+
+// toExpenseSummaryRes adds up the category rows per currency; totals follow the order of enums.CurrencyValues.
+func toExpenseSummaryRes(month string, rows []repo.CategoryTotal) *dto.ExpenseSummaryRes {
+	type total struct{ amount, count int64 }
+	totals := map[enums.CurrencyEnum]*total{}
+	res := &dto.ExpenseSummaryRes{
+		Month:      month,
+		Totals:     []dto.CurrencyTotalRes{},
+		ByCategory: make([]dto.CategoryTotalRes, 0, len(rows)),
+	}
+	for _, row := range rows {
+		t, ok := totals[row.Currency]
+		if !ok {
+			t = &total{}
+			totals[row.Currency] = t
+		}
+		t.amount += row.Amount
+		t.count += row.Count
+		res.ByCategory = append(res.ByCategory, dto.CategoryTotalRes{
+			CategoryID: row.CategoryID,
+			Currency:   string(row.Currency),
+			Amount:     money.ToDecimalString(row.Amount, row.Currency),
+			Count:      row.Count,
+		})
+	}
+	for _, code := range enums.CurrencyValues {
+		currency := enums.CurrencyEnum(code)
+		if t, ok := totals[currency]; ok {
+			res.Totals = append(res.Totals, dto.CurrencyTotalRes{
+				Currency: code,
+				Amount:   money.ToDecimalString(t.amount, currency),
+				Count:    t.count,
+			})
+		}
+	}
+	return res
 }
 
 func toExpenseResList(expenses []model.Expense) []*dto.ExpenseRes {

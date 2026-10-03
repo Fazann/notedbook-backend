@@ -24,6 +24,11 @@ func CORS() gin.HandlerFunc {
 		h.Set("Access-Control-Allow-Methods", corsAllowMethods)
 		h.Set("Access-Control-Allow-Headers", "*")
 		h.Set("Access-Control-Max-Age", "86400")
+		// Answer the browser's preflight here; no route handles OPTIONS, so it would be a 404.
+		if c.Request.Method == http.MethodOptions {
+			c.AbortWithStatus(http.StatusNoContent)
+			return
+		}
 		c.Next()
 	}
 }

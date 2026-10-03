@@ -28,6 +28,8 @@ CATEGORY_NAME_TAKEN: "អ្នកមានប្រភេទដែលមាន�
 INVALID_CATEGORY_NAME: "ឈ្មោះប្រភេទត្រូវមានពី 1 ដល់ {max} តួអក្សរ។"
 INVALID_CATEGORY_ICON: "រូបតំណាងប្រភេទមិនត្រឹមត្រូវទេ។"
 INVALID_CATEGORY_COLOR: "ពណ៌ប្រភេទមិនត្រឹមត្រូវទេ។"
+CATEGORY_IN_USE: "ប្រភេទនេះកំពុងប្រើដោយការចំណាយ {count}។ សូមជ្រើសរើសប្រភេទមួយដើម្បីផ្លាស់ទីវាទៅ។"
+INVALID_REASSIGN_CATEGORY: "សូមជ្រើសរើសប្រភេទផ្សេងទៀតដែលមានស្រាប់ ដើម្បីផ្លាស់ទីការចំណាយទៅ។"
 UNSUPPORTED_LANGUAGE: "គាំទ្រតែភាសាទាំងនេះប៉ុណ្ណោះ៖ {langs}។"
 
 # Expenses

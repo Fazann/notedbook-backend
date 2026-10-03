@@ -56,6 +56,35 @@ func (h *ExpenseHandler) List(c *gin.Context) {
 	response.JsonSuccessResWithPage(c, res)
 }
 
+// Summary godoc
+//
+//	@Summary		Summarize my expenses of a month
+//	@Description	Totals of the signed-in user's expenses in one month, per currency and per category and currency.
+//	@Description	Amounts in different currencies are never added together. Amounts are decimal strings, as in the list.
+//	@Tags			expenses
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			month			query		string	true	"Month (YYYY-MM)"
+//	@Param			Accept-Language	header		string	false	"Language of errors"	Enums(en, km, ms)
+//	@Success		200				{object}	response.SuccessRes{data=dto.ExpenseSummaryRes}
+//	@Failure		400				{object}	response.ErrorRes	"VALIDATION_FAILED (month missing or not YYYY-MM)"
+//	@Router			/v1/expenses/summary [get]
+func (h *ExpenseHandler) Summary(c *gin.Context) {
+	var req dto.ExpenseSummaryReq
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.JsonErrRes(c, err, http.StatusBadRequest)
+		return
+	}
+
+	res := h.expenseSvc.Summary(c.Request.Context(), middleware.CurrentUserID(c), &req)
+	if res.Error != nil {
+		response.JsonErrRes(c, res.Error, res.StatusCode)
+		return
+	}
+
+	response.JsonSuccessRes(c, res.Data, res.StatusCode)
+}
+
 // GetDetail godoc
 //
 //	@Summary		Get an expense

@@ -33,7 +33,7 @@ func NewCategoryHandler() *CategoryHandler {
 //	@Param			page			query		int		false	"Page (1-based)"				minimum(1)	default(1)
 //	@Param			limit			query		int		false	"Rows per page"					minimum(1)	maximum(1000)	default(10)
 //	@Param			q				query		string	false	"Search in any language"		maxlength(100)
-//	@Param			sort			query		string	false	"Sort (\"-\" = descending)"		Enums(name, -name, created_at, -created_at)	default(name)
+//	@Param			sort			query		string	false	"Sort (\"-\" = descending)"		Enums(name, -name, created_at, -created_at, expense_count, -expense_count)	default(name)
 //	@Param			Accept-Language	header		string	false	"Language of names and errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.Paginate{data=[]dto.CategoryRes}
 //	@Router			/v1/categories [get]
@@ -169,12 +169,18 @@ func (h *CategoryHandler) Update(c *gin.Context) {
 //
 //	@Summary		Delete an expense category
 //	@Description	Soft-deletes one of the signed-in user's categories. Default categories are read-only.
+//	@Description	A category that still has expenses needs `reassign_to`: its expenses are moved to that category first.
 //	@Tags			expense-categories
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			id				path		int		true	"Category ID"			minimum(1)
-//	@Param			Accept-Language	header		string	false	"Language of errors"	Enums(en, km, ms)
+//	@Param			id				path		int		true	"Category ID"						minimum(1)
+//	@Param			reassign_to		query		int		false	"Category to move the expenses to"	minimum(1)
+//	@Param			Accept-Language	header		string	false	"Language of errors"				Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes
+//	@Failure		400				{object}	response.ErrorRes	"INVALID_ID or INVALID_REASSIGN_CATEGORY"
+//	@Failure		403				{object}	response.ErrorRes	"CATEGORY_IS_DEFAULT"
+//	@Failure		404				{object}	response.ErrorRes	"RECORD_NOT_FOUND"
+//	@Failure		409				{object}	response.ErrorRes	"CATEGORY_IN_USE (has expenses, no reassign_to)"
 //	@Router			/v1/categories/{id} [delete]
 func (h *CategoryHandler) Delete(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
@@ -182,8 +188,13 @@ func (h *CategoryHandler) Delete(c *gin.Context) {
 		response.JsonErrRes(c, i18n.InvalidID, http.StatusBadRequest)
 		return
 	}
+	var req dto.CategoryDeleteReq
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.JsonErrRes(c, err, http.StatusBadRequest)
+		return
+	}
 
-	res := h.categorySvc.Delete(c.Request.Context(), middleware.CurrentUserID(c), uint(id))
+	res := h.categorySvc.Delete(c.Request.Context(), middleware.CurrentUserID(c), uint(id), req.ReassignTo)
 	if res.Error != nil {
 		response.JsonErrRes(c, res.Error, res.StatusCode)
 		return

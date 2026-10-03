@@ -28,11 +28,13 @@ type CategoryServiceImpl interface {
 	GetDetail(ctx context.Context, userID, id uint, lang i18n.Lang) response.SvcRes
 	Create(ctx context.Context, userID uint, lang i18n.Lang, req *dto.CategoryReq) response.SvcRes
 	Update(ctx context.Context, userID, id uint, lang i18n.Lang, req *dto.CategoryUpdateReq) response.SvcRes
-	Delete(ctx context.Context, userID, id uint) response.SvcRes
+	Delete(ctx context.Context, userID, id, reassignTo uint) response.SvcRes
 }
 
 type categorySvc struct {
 	categoryRepo repo.CategoryRepoImpl
+	// Counts and moves the expenses that use a category.
+	expenseRepo repo.ExpenseRepoImpl
 	// Runs fn in a database transaction; replaced in tests.
 	transaction func(ctx context.Context, fn func(tx *gorm.DB) error) error
 }
@@ -40,6 +42,7 @@ type categorySvc struct {
 func NewCategorySvc() *categorySvc {
 	return &categorySvc{
 		categoryRepo: repo.NewCategoryRepo(),
+		expenseRepo:  repo.NewExpenseRepo(),
 		transaction: func(ctx context.Context, fn func(tx *gorm.DB) error) error {
 			return db.DB.WithContext(ctx).Transaction(fn)
 		},
@@ -59,8 +62,12 @@ func (s *categorySvc) List(ctx context.Context, userID uint, lang i18n.Lang, req
 	if err != nil {
 		return response.SvcResWithPaginate{Error: fmt.Errorf("list categories: %w", err), StatusCode: http.StatusInternalServerError}
 	}
+	counts, err := s.expenseCounts(ctx, userID, categories)
+	if err != nil {
+		return response.SvcResWithPaginate{Error: err, StatusCode: http.StatusInternalServerError}
+	}
 
-	return response.SvcRespPage(toCategoryResList(categories, lang), page, limit, total)
+	return response.SvcRespPage(toCategoryResList(categories, lang, counts), page, limit, total)
 }
 
 func (s *categorySvc) ListAll(ctx context.Context, userID uint, lang i18n.Lang) response.SvcRes {
@@ -68,8 +75,12 @@ func (s *categorySvc) ListAll(ctx context.Context, userID uint, lang i18n.Lang) 
 	if err != nil {
 		return response.SvcRespErr(fmt.Errorf("list all categories: %w", err), http.StatusInternalServerError)
 	}
+	counts, err := s.expenseCounts(ctx, userID, categories)
+	if err != nil {
+		return response.SvcRespErr(err, http.StatusInternalServerError)
+	}
 
-	return response.SvcRespSuccess(toCategoryResList(categories, lang), http.StatusOK)
+	return response.SvcRespSuccess(toCategoryResList(categories, lang, counts), http.StatusOK)
 }
 
 func (s *categorySvc) GetDetail(ctx context.Context, userID, id uint, lang i18n.Lang) response.SvcRes {
@@ -80,8 +91,12 @@ func (s *categorySvc) GetDetail(ctx context.Context, userID, id uint, lang i18n.
 		}
 		return response.SvcRespErr(err, http.StatusInternalServerError)
 	}
+	counts, err := s.expenseCounts(ctx, userID, []model.ExpenseCategory{*category})
+	if err != nil {
+		return response.SvcRespErr(err, http.StatusInternalServerError)
+	}
 
-	return response.SvcRespSuccess(toCategoryRes(category, lang), http.StatusOK)
+	return response.SvcRespSuccess(toCategoryRes(category, lang, counts[category.ID]), http.StatusOK)
 }
 
 func (s *categorySvc) Create(ctx context.Context, userID uint, lang i18n.Lang, req *dto.CategoryReq) response.SvcRes {
@@ -119,7 +134,7 @@ func (s *categorySvc) Create(ctx context.Context, userID uint, lang i18n.Lang, r
 	}
 
 	category.Translations = trs
-	return response.SvcRespSuccess(toCategoryRes(category, lang), http.StatusCreated)
+	return response.SvcRespSuccess(toCategoryRes(category, lang, 0), http.StatusCreated)
 }
 
 func (s *categorySvc) Update(ctx context.Context, userID, id uint, lang i18n.Lang, req *dto.CategoryUpdateReq) response.SvcRes {
@@ -196,17 +211,63 @@ func (s *categorySvc) Update(ctx context.Context, userID, id uint, lang i18n.Lan
 	return s.GetDetail(ctx, userID, id, lang)
 }
 
-// TODO: once expenses are stored, refuse (or reassign) a category that is still used by expenses.
-func (s *categorySvc) Delete(ctx context.Context, userID, id uint) response.SvcRes {
+// Delete soft-deletes one of the user's categories. When it still has expenses, reassignTo must name another
+// category the user can see; the expenses are moved there in the same transaction.
+func (s *categorySvc) Delete(ctx context.Context, userID, id, reassignTo uint) response.SvcRes {
 	if _, res, ok := s.findOwn(ctx, userID, id); !ok {
 		return res
 	}
 
-	if err := s.categoryRepo.SoftDelete(ctx, userID, id, userID); err != nil {
-		return response.SvcRespErr(fmt.Errorf("delete category: %w", err), http.StatusInternalServerError)
+	counts, err := s.expenseRepo.CountByCategory(ctx, userID, []uint{id})
+	if err != nil {
+		return response.SvcRespErr(fmt.Errorf("count category expenses: %w", err), http.StatusInternalServerError)
+	}
+	inUse := counts[id]
+	if inUse > 0 && reassignTo == 0 {
+		return response.SvcRespErr(i18n.Err(i18n.CategoryInUse, i18n.Params{"count": inUse}), http.StatusConflict)
+	}
+	if reassignTo != 0 {
+		if reassignTo == id {
+			return response.SvcRespErr(i18n.InvalidReassignCategory, http.StatusBadRequest)
+		}
+		if _, err := s.categoryRepo.FindOneByID(ctx, userID, reassignTo); err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return response.SvcRespErr(i18n.InvalidReassignCategory, http.StatusBadRequest)
+			}
+			return response.SvcRespErr(err, http.StatusInternalServerError)
+		}
+	}
+
+	err = s.transaction(ctx, func(tx *gorm.DB) error {
+		// Also moves expenses added since the count above.
+		if reassignTo != 0 {
+			if err := s.expenseRepo.WithTx(tx).ReassignCategory(ctx, userID, id, reassignTo); err != nil {
+				return fmt.Errorf("reassign category expenses: %w", err)
+			}
+		}
+		if err := s.categoryRepo.WithTx(tx).SoftDelete(ctx, userID, id, userID); err != nil {
+			return fmt.Errorf("delete category: %w", err)
+		}
+		return nil
+	})
+	if err != nil {
+		return response.SvcRespErr(err, http.StatusInternalServerError)
 	}
 
 	return response.SvcRespSuccess(nil, http.StatusOK)
+}
+
+// expenseCounts returns how many of the user's expenses use each of the categories.
+func (s *categorySvc) expenseCounts(ctx context.Context, userID uint, categories []model.ExpenseCategory) (map[uint]int64, error) {
+	ids := make([]uint, len(categories))
+	for i := range categories {
+		ids[i] = categories[i].ID
+	}
+	counts, err := s.expenseRepo.CountByCategory(ctx, userID, ids)
+	if err != nil {
+		return nil, fmt.Errorf("count category expenses: %w", err)
+	}
+	return counts, nil
 }
 
 // findOwn returns the category when it exists and belongs to userID; default (admin) categories are read-only.
@@ -343,6 +404,9 @@ func listFilter(req *dto.CategoryListReq) *repo.CategoryFilter {
 	switch key {
 	case "created_at":
 		filter.SortCreatedAt = &order
+	case "expense_count":
+		filter.SortExpenseCount = &order
+		filter.SortName = new("asc")
 	default:
 		filter.SortName = &order
 	}
@@ -359,12 +423,13 @@ func toTranslationModels(translations map[i18n.Lang]string) []model.ExpenseCateg
 	return trs
 }
 
-func toCategoryRes(category *model.ExpenseCategory, lang i18n.Lang) *dto.CategoryRes {
+func toCategoryRes(category *model.ExpenseCategory, lang i18n.Lang, expenseCount int64) *dto.CategoryRes {
 	res := &dto.CategoryRes{
 		ID:           category.ID,
 		Name:         category.Name,
 		DisplayName:  category.Name,
 		IsDefault:    category.UserID == 0,
+		ExpenseCount: expenseCount,
 		Translations: make(map[string]string, len(category.Translations)),
 		Icon:         category.Icon,
 		Color:        category.Color,
@@ -380,10 +445,10 @@ func toCategoryRes(category *model.ExpenseCategory, lang i18n.Lang) *dto.Categor
 	return res
 }
 
-func toCategoryResList(categories []model.ExpenseCategory, lang i18n.Lang) []*dto.CategoryRes {
+func toCategoryResList(categories []model.ExpenseCategory, lang i18n.Lang, counts map[uint]int64) []*dto.CategoryRes {
 	res := make([]*dto.CategoryRes, len(categories))
 	for i := range categories {
-		res[i] = toCategoryRes(&categories[i], lang)
+		res[i] = toCategoryRes(&categories[i], lang, counts[categories[i].ID])
 	}
 	return res
 }

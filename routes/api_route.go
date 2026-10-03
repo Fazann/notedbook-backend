@@ -65,6 +65,7 @@ func initAPIRoute(r *gin.Engine) {
 
 	categories := api.Group("/categories", authRequired)
 	categories.GET("", h.categoryHandler.List)
+	categories.GET("/all", h.categoryHandler.ListAll)
 	categories.GET("/:id", h.categoryHandler.GetDetail)
 	categories.POST("", h.categoryHandler.Create)
 	categories.PUT("/:id", h.categoryHandler.Update)
@@ -72,6 +73,7 @@ func initAPIRoute(r *gin.Engine) {
 
 	expenses := api.Group("/expenses", authRequired)
 	expenses.GET("", h.expenseHandler.List)
+	expenses.GET("/summary", h.expenseHandler.Summary)
 	expenses.GET("/:id", h.expenseHandler.GetDetail)
 	expenses.POST("", h.expenseHandler.Create)
 	expenses.PUT("/:id", h.expenseHandler.Update)

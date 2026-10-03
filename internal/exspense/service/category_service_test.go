@@ -96,8 +96,14 @@ func (r *fakeCategoryRepo) SoftDelete(_ context.Context, _, id, _ uint) error {
 }
 
 func newTestCategorySvc(r *fakeCategoryRepo) *categorySvc {
+	return newTestCategorySvcWith(r, newFakeExpenseRepo())
+}
+
+// newTestCategorySvcWith uses the fake expenses of e (user 1 has two expenses in category 1).
+func newTestCategorySvcWith(r *fakeCategoryRepo, e *fakeExpenseRepo) *categorySvc {
 	return &categorySvc{
 		categoryRepo: r,
+		expenseRepo:  e,
 		transaction:  func(_ context.Context, fn func(tx *gorm.DB) error) error { return fn(nil) },
 	}
 }
@@ -274,12 +280,28 @@ func TestUpdateCategory(t *testing.T) {
 
 func TestDeleteCategory(t *testing.T) {
 	tests := []struct {
-		name        string
-		userID, id  uint
-		wantStatus  int
-		wantDeleted []uint
+		name           string
+		userID, id     uint
+		reassignTo     uint
+		wantStatus     int
+		wantErr        error
+		wantDeleted    []uint
+		wantReassigned [][2]uint
 	}{
-		{name: "own category", userID: 1, id: 2, wantStatus: http.StatusOK, wantDeleted: []uint{2}},
+		{name: "own category without expenses", userID: 1, id: 2, wantStatus: http.StatusOK, wantDeleted: []uint{2}},
+		{name: "reassign_to ignored when unused", userID: 1, id: 2, reassignTo: 1, wantStatus: http.StatusOK,
+			wantDeleted: []uint{2}, wantReassigned: [][2]uint{{2, 1}}},
+		{name: "in use without reassign_to", userID: 1, id: 1, wantStatus: http.StatusConflict, wantErr: i18n.CategoryInUse},
+		{name: "in use, moved to own category", userID: 1, id: 1, reassignTo: 2, wantStatus: http.StatusOK,
+			wantDeleted: []uint{1}, wantReassigned: [][2]uint{{1, 2}}},
+		{name: "in use, moved to default category", userID: 1, id: 1, reassignTo: 4, wantStatus: http.StatusOK,
+			wantDeleted: []uint{1}, wantReassigned: [][2]uint{{1, 4}}},
+		{name: "moved to itself", userID: 1, id: 1, reassignTo: 1, wantStatus: http.StatusBadRequest,
+			wantErr: i18n.InvalidReassignCategory},
+		{name: "moved to another user's category", userID: 1, id: 1, reassignTo: 3, wantStatus: http.StatusBadRequest,
+			wantErr: i18n.InvalidReassignCategory},
+		{name: "moved to a missing category", userID: 1, id: 1, reassignTo: 99, wantStatus: http.StatusBadRequest,
+			wantErr: i18n.InvalidReassignCategory},
 		{name: "another user's category", userID: 1, id: 3, wantStatus: http.StatusNotFound},
 		{name: "default category", userID: 1, id: 4, wantStatus: http.StatusForbidden},
 		{name: "missing", userID: 1, id: 99, wantStatus: http.StatusNotFound},
@@ -287,17 +309,33 @@ func TestDeleteCategory(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := newFakeCategoryRepo()
+			r, e := newFakeCategoryRepo(), newFakeExpenseRepo()
 
-			res := newTestCategorySvc(r).Delete(context.Background(), tt.userID, tt.id)
+			res := newTestCategorySvcWith(r, e).Delete(context.Background(), tt.userID, tt.id, tt.reassignTo)
 
 			if res.StatusCode != tt.wantStatus {
-				t.Fatalf("status = %d, want %d", res.StatusCode, tt.wantStatus)
+				t.Fatalf("status = %d, want %d (err %v)", res.StatusCode, tt.wantStatus, res.Error)
+			}
+			if tt.wantErr != nil {
+				if key, _, _ := i18n.FromError(res.Error); key != tt.wantErr {
+					t.Errorf("error = %v, want %v", res.Error, tt.wantErr)
+				}
 			}
 			if !reflect.DeepEqual(r.deleted, tt.wantDeleted) {
 				t.Errorf("deleted = %v, want %v", r.deleted, tt.wantDeleted)
 			}
+			if !reflect.DeepEqual(e.reassigned, tt.wantReassigned) {
+				t.Errorf("reassigned = %v, want %v", e.reassigned, tt.wantReassigned)
+			}
 		})
+	}
+}
+
+func TestCategoryInUseCount(t *testing.T) {
+	res := newTestCategorySvc(newFakeCategoryRepo()).Delete(context.Background(), 1, 1, 0)
+
+	if _, params, _ := i18n.FromError(res.Error); params["count"] != int64(2) {
+		t.Errorf("params = %v, want count 2", params)
 	}
 }
 
@@ -324,6 +362,17 @@ func TestListCategories(t *testing.T) {
 	}
 	if items[0].IsDefault || !items[2].IsDefault {
 		t.Errorf("is_default = %v, %v, want false, true", items[0].IsDefault, items[2].IsDefault)
+	}
+	// Only user 1's expenses count: two in Gym (1), none in Books (2) or Food (4).
+	if items[0].ExpenseCount != 2 || items[1].ExpenseCount != 0 || items[2].ExpenseCount != 0 {
+		t.Errorf("expense counts = %d, %d, %d", items[0].ExpenseCount, items[1].ExpenseCount, items[2].ExpenseCount)
+	}
+}
+
+func TestListFilterByExpenseCount(t *testing.T) {
+	filter := listFilter(&dto.CategoryListReq{Sort: "-expense_count"})
+	if filter.SortExpenseCount == nil || *filter.SortExpenseCount != "desc" || *filter.SortName != "asc" || filter.SortCreatedAt != nil {
+		t.Errorf("filter = %+v", filter)
 	}
 }
 

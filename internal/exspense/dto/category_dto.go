@@ -25,7 +25,12 @@ type CategoryListReq struct {
 	Limit int `form:"limit" binding:"omitempty,min=1,max=1000" example:"10"`
 	// Matches the base name and every translation, in any language.
 	Q    string `form:"q" binding:"omitempty,max=100" example:"gym"`
-	Sort string `form:"sort" binding:"omitempty,oneof=name -name created_at -created_at" example:"name"`
+	Sort string `form:"sort" binding:"omitempty,oneof=name -name created_at -created_at expense_count -expense_count" example:"name"`
+}
+
+type CategoryDeleteReq struct {
+	// Category to move the deleted category's expenses to; required when it still has expenses.
+	ReassignTo uint `form:"reassign_to" binding:"omitempty,min=1" example:"10"`
 }
 
 type CategoryRes struct {
@@ -35,9 +40,11 @@ type CategoryRes struct {
 	DisplayName  string            `json:"display_name" example:"ហាត់ប្រាណ"`
 	Translations map[string]string `json:"translations"`
 	// Created by an admin for every user; read-only (cannot be updated or deleted by the user).
-	IsDefault bool      `json:"is_default" example:"false"`
-	Icon      string    `json:"icon" example:"dumbbell"`
-	Color     string    `json:"color" example:"green"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	IsDefault bool `json:"is_default" example:"false"`
+	// Number of the signed-in user's expenses in this category.
+	ExpenseCount int64     `json:"expense_count" example:"3"`
+	Icon         string    `json:"icon" example:"dumbbell"`
+	Color        string    `json:"color" example:"green"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }

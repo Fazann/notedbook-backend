@@ -2,12 +2,14 @@ package repo
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/Fazann/notedbook-backend/pkg/db"
 	"github.com/Fazann/notedbook-backend/shared/baserepo"
 	model "github.com/Fazann/notedbook-backend/shared/models"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // visibleTo matches the categories a user can see: their own and the admin (default) ones.
@@ -19,6 +21,8 @@ type CategoryFilter struct {
 	Search        string  `filter:"column=name_search;op=like"`
 	SortName      *string `sort:"LOWER(name)"`
 	SortCreatedAt *string `sort:"created_at"`
+	// "asc" or "desc": by the number of the user's expenses in the category (applied in List, before the tagged sorts).
+	SortExpenseCount *string
 	// Tie-breaker, so pages do not overlap when the sort value repeats.
 	SortID *string `sort:"id"`
 }
@@ -89,7 +93,6 @@ func (r *categoryRepo) FindDefaultByName(ctx context.Context, name string) (*mod
 }
 
 // FindAllByUser returns the default categories first, then the user's own, in creation order.
-
 func (r *categoryRepo) FindAllByUser(ctx context.Context, userID uint) ([]model.ExpenseCategory, error) {
 	categories := []model.ExpenseCategory{}
 	if err := r.db.WithContext(ctx).Preload("Translations").
@@ -101,7 +104,19 @@ func (r *categoryRepo) FindAllByUser(ctx context.Context, userID uint) ([]model.
 }
 
 func (r *categoryRepo) List(ctx context.Context, userID uint, filter *CategoryFilter, page, limit int) ([]model.ExpenseCategory, int64, error) {
-	return baserepo.NewQueryBuilder[model.ExpenseCategory](r.db.Preload("Translations").Where(visibleTo, userID)).
+	query := r.db.Preload("Translations").Where(visibleTo, userID)
+	if filter != nil && filter.SortExpenseCount != nil {
+		// The count needs the user ID, so it cannot be a static `sort` tag. It is a raw column (not an expression
+		// with `?` vars) because GORM drops an ORDER BY expression when the tagged sorts are added after it;
+		// userID is a uint from the auth token, so formatting it into the SQL is safe.
+		query = query.Order(clause.OrderByColumn{
+			Column: clause.Column{Raw: true, Name: fmt.Sprintf("(SELECT COUNT(*) FROM expenses "+
+				"WHERE expenses.category_id = expense_categories.id AND expenses.user_id = %d "+
+				"AND expenses.deleted_at IS NULL)", userID)},
+			Desc: *filter.SortExpenseCount == "desc",
+		})
+	}
+	return baserepo.NewQueryBuilder[model.ExpenseCategory](query).
 		ApplyFilters(filter).
 		Paginate(ctx, page, limit)
 }

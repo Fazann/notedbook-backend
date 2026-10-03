@@ -40,6 +40,32 @@ type ExpenseAllReq struct {
 	Month string `form:"month" binding:"omitempty,datetime=2006-01" example:"2026-09"`
 }
 
+type ExpenseSummaryReq struct {
+	// YYYY-MM
+	Month string `form:"month" binding:"required,datetime=2006-01" example:"2026-09"`
+}
+
+// ExpenseSummaryRes holds a month's totals; amounts are never added across currencies.
+type ExpenseSummaryRes struct {
+	Month      string             `json:"month" example:"2026-09"`
+	Totals     []CurrencyTotalRes `json:"totals"`
+	ByCategory []CategoryTotalRes `json:"by_category"`
+}
+
+type CurrencyTotalRes struct {
+	Currency string `json:"currency" example:"USD"`
+	// Decimal string in the currency's major unit, as in ExpenseRes.
+	Amount string `json:"amount" example:"125.50"`
+	Count  int64  `json:"count" example:"12"`
+}
+
+type CategoryTotalRes struct {
+	CategoryID uint   `json:"category_id" example:"1"`
+	Currency   string `json:"currency" example:"USD"`
+	Amount     string `json:"amount" example:"42.00"`
+	Count      int64  `json:"count" example:"5"`
+}
+
 type ExpenseRes struct {
 	ID uint `json:"id" example:"1"`
 	// Decimal string in the currency's major unit, e.g. "12.50" USD, "40000" KHR.
