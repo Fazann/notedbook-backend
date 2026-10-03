@@ -114,3 +114,22 @@ var RecurrenceKindValues = []string{
 	string(RecurrenceKindWeekdays),
 	string(RecurrenceKindWeekly),
 }
+
+// BoardLabelEnum is the color tag on a board card; maps to a `--label-<color>` theme token in the frontend.
+type BoardLabelEnum string
+
+const (
+	BoardLabelRed    BoardLabelEnum = "red"
+	BoardLabelYellow BoardLabelEnum = "yellow"
+	BoardLabelGreen  BoardLabelEnum = "green"
+	BoardLabelBlue   BoardLabelEnum = "blue"
+	BoardLabelPurple BoardLabelEnum = "purple"
+)
+
+var BoardLabelValues = []string{
+	string(BoardLabelRed),
+	string(BoardLabelYellow),
+	string(BoardLabelGreen),
+	string(BoardLabelBlue),
+	string(BoardLabelPurple),
+}

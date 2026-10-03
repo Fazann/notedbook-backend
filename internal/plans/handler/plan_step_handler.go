@@ -25,7 +25,7 @@ func NewPlanStepHandler() *PlanStepHandler {
 // Create godoc
 //
 //	@Summary		Add a step to a plan
-//	@Description	Adds a step at the end of the plan and increments its step_count.
+//	@Description	Adds a step at the end of the plan (or at `position`, e.g. to undo a delete) and increments its step_count.
 //	@Tags			plan-steps
 //	@Accept			json
 //	@Produce		json
@@ -120,6 +120,44 @@ func (h *PlanStepHandler) Toggle(c *gin.Context) {
 	}
 
 	res := h.planStepSvc.Toggle(c.Request.Context(), middleware.CurrentUserID(c), uint(id), i18n.FromRequest(c.Request), &req)
+	if res.Error != nil {
+		response.JsonErrRes(c, res.Error, res.StatusCode)
+		return
+	}
+
+	response.JsonSuccessRes(c, res.Data, res.StatusCode)
+}
+
+// Move godoc
+//
+//	@Summary		Move a plan step
+//	@Description	Sets the step's position inside its plan. Steps are listed by position, so the client sends a value
+//	@Description	between the new neighbours: (prev + next) / 2, first - 1000 at the top, last + 1000 at the bottom.
+//	@Tags			plan-steps
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			id				path		int					true	"Step ID"	minimum(1)
+//	@Param			body			body		dto.PlanStepMoveReq	true	"New position"
+//	@Param			Accept-Language	header		string				false	"Language of errors"	Enums(en, km, ms)
+//	@Success		200				{object}	response.SuccessRes{data=dto.PlanStepRes}
+//	@Failure		400				{object}	response.ErrorRes	"VALIDATION_FAILED, INVALID_ID"
+//	@Failure		404				{object}	response.ErrorRes	"RECORD_NOT_FOUND"
+//	@Router			/v1/steps/{id}/move [patch]
+func (h *PlanStepHandler) Move(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	if id <= 0 {
+		response.JsonErrRes(c, i18n.InvalidID, http.StatusBadRequest)
+		return
+	}
+
+	var req dto.PlanStepMoveReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.JsonErrRes(c, err, http.StatusBadRequest)
+		return
+	}
+
+	res := h.planStepSvc.Move(c.Request.Context(), middleware.CurrentUserID(c), uint(id), &req)
 	if res.Error != nil {
 		response.JsonErrRes(c, res.Error, res.StatusCode)
 		return

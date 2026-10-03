@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -33,6 +35,7 @@ type PlanServiceImpl interface {
 	Update(ctx context.Context, userID, id uint, lang i18n.Lang, req *dto.PlanUpdateReq) response.SvcRes
 	UpdateStatus(ctx context.Context, userID, id uint, lang i18n.Lang, req *dto.PlanStatusReq) response.SvcRes
 	Delete(ctx context.Context, userID, id uint) response.SvcRes
+	Stats(ctx context.Context, userID uint, req *dto.PlanStatsReq) response.SvcRes
 }
 
 type planSvc struct {
@@ -58,7 +61,12 @@ func (s *planSvc) List(ctx context.Context, userID uint, lang i18n.Lang, req *dt
 		limit = constants.DefaultLimit
 	}
 
-	plans, total, err := s.planRepo.List(ctx, userID, planListFilter(req), page, limit)
+	filter, err := planListFilter(req)
+	if err != nil {
+		return response.SvcResWithPaginate{Error: err, StatusCode: http.StatusBadRequest}
+	}
+
+	plans, total, err := s.planRepo.List(ctx, userID, filter, page, limit)
 	if err != nil {
 		return response.SvcResWithPaginate{Error: fmt.Errorf("list plans: %w", err), StatusCode: http.StatusInternalServerError}
 	}
@@ -211,6 +219,31 @@ func (s *planSvc) Delete(ctx context.Context, userID, id uint) response.SvcRes {
 	return response.SvcRespSuccess(nil, http.StatusOK)
 }
 
+// Stats summarizes the user's plans as of req.Today (default: today in UTC).
+func (s *planSvc) Stats(ctx context.Context, userID uint, req *dto.PlanStatsReq) response.SvcRes {
+	today := time.Now().UTC().Truncate(24 * time.Hour)
+	if req.Today != "" {
+		date, err := time.Parse(planDateLayout, req.Today)
+		if err != nil {
+			return response.SvcRespErr(i18n.Err(i18n.FieldInvalid, i18n.Params{"field": "today"}), http.StatusBadRequest)
+		}
+		today = date
+	}
+	yearStart := time.Date(today.Year(), time.January, 1, 0, 0, 0, 0, time.UTC)
+
+	stats, err := s.planRepo.Stats(ctx, userID, today, yearStart, yearStart.AddDate(1, 0, 0))
+	if err != nil {
+		return response.SvcRespErr(fmt.Errorf("plan stats: %w", err), http.StatusInternalServerError)
+	}
+
+	return response.SvcRespSuccess(&dto.PlanStatsRes{
+		Active:          stats.Active,
+		DoneThisYear:    stats.DoneThisYear,
+		Overdue:         stats.Overdue,
+		AverageProgress: int(math.Round(stats.AverageProgress)),
+	}, http.StatusOK)
+}
+
 // findOwn returns the user's plan; ok is false with the error response otherwise.
 func (s *planSvc) findOwn(ctx context.Context, userID, id uint) (*model.Plan, response.SvcRes, bool) {
 	plan, err := s.planRepo.FindOneByID(ctx, userID, id)
@@ -278,12 +311,27 @@ func parseOptionalDate(value *string) (*time.Time, error) {
 
 var likeEscaper = strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`)
 
-func planListFilter(req *dto.PlanListReq) *repo.PlanFilter {
+var planStatuses = []string{enums.PlanStatusNotStart, enums.PlanStatusInProgress, enums.PlanStatusDone}
+
+// planListFilter builds the list query; status and area_id are comma-separated lists.
+func planListFilter(req *dto.PlanListReq) (*repo.PlanFilter, error) {
 	filter := &repo.PlanFilter{
-		Status: req.Status,
-		AreaID: req.AreaID,
 		Search: likeEscaper.Replace(strings.ToLower(strings.TrimSpace(req.Q))),
 		SortID: new("asc"),
+	}
+
+	for _, part := range splitList(req.Status) {
+		if !slices.Contains(planStatuses, part) {
+			return nil, i18n.Err(i18n.FieldInvalid, i18n.Params{"field": "status"})
+		}
+		filter.Statuses = append(filter.Statuses, part)
+	}
+	for _, part := range splitList(req.AreaID) {
+		id, err := strconv.Atoi(part)
+		if err != nil || id <= 0 {
+			return nil, i18n.Err(i18n.FieldInvalid, i18n.Params{"field": "area_id"})
+		}
+		filter.AreaIDs = append(filter.AreaIDs, id)
 	}
 
 	order := "asc"
@@ -296,10 +344,23 @@ func planListFilter(req *dto.PlanListReq) *repo.PlanFilter {
 		filter.SortCreatedAt = &order
 	case "title":
 		filter.SortTitle = &order
+	case "progress":
+		filter.SortProgress = &order
 	default:
 		filter.SortTargetDate = &order
 	}
-	return filter
+	return filter, nil
+}
+
+// splitList splits "a, b,,c" into ["a" "b" "c"].
+func splitList(value string) []string {
+	var parts []string
+	for part := range strings.SplitSeq(value, ",") {
+		if part = strings.TrimSpace(part); part != "" {
+			parts = append(parts, part)
+		}
+	}
+	return parts
 }
 
 // calcProgress rounds done/total to a percentage; 0 with no steps, 100 once status is DONE.

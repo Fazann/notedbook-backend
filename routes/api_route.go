@@ -6,6 +6,7 @@ import (
 	"github.com/Fazann/notedbook-backend/config"
 	"github.com/Fazann/notedbook-backend/internal/attachments/handler"
 	attachmentService "github.com/Fazann/notedbook-backend/internal/attachments/service"
+	boardHandler "github.com/Fazann/notedbook-backend/internal/boards/handler"
 	expenseHandler "github.com/Fazann/notedbook-backend/internal/exspense/handler"
 	planHandler "github.com/Fazann/notedbook-backend/internal/plans/handler"
 	scheduleHandler "github.com/Fazann/notedbook-backend/internal/schedule/handler"
@@ -25,6 +26,7 @@ type handlers struct {
 	planHandler       planHandler.PlanHandler
 	planStepHandler   planHandler.PlanStepHandler
 	scheduleHandler   scheduleHandler.ScheduleHandler
+	boardHandler      boardHandler.BoardHandler
 }
 
 func newHandlers() *handlers {
@@ -38,6 +40,7 @@ func newHandlers() *handlers {
 		planHandler:       *planHandler.NewPlanHandler(),
 		planStepHandler:   *planHandler.NewPlanStepHandler(),
 		scheduleHandler:   *scheduleHandler.NewScheduleHandler(),
+		boardHandler:      *boardHandler.NewBoardHandler(),
 	}
 }
 
@@ -84,6 +87,7 @@ func initAPIRoute(r *gin.Engine) {
 
 	plans := api.Group("/plans", authRequired)
 	plans.GET("", h.planHandler.List)
+	plans.GET("/stats", h.planHandler.Stats)
 	plans.GET("/:id", h.planHandler.GetDetail)
 	plans.POST("", h.planHandler.Create)
 	plans.PUT("/:id", h.planHandler.Update)
@@ -94,6 +98,7 @@ func initAPIRoute(r *gin.Engine) {
 	steps := api.Group("/steps", authRequired)
 	steps.PUT("/:id", h.planStepHandler.Update)
 	steps.PATCH("/:id/toggle", h.planStepHandler.Toggle)
+	steps.PATCH("/:id/move", h.planStepHandler.Move)
 	steps.DELETE("/:id", h.planStepHandler.Delete)
 
 	schedule := api.Group("/schedule", authRequired)
@@ -103,4 +108,10 @@ func initAPIRoute(r *gin.Engine) {
 	schedule.POST("/activities", h.scheduleHandler.CreateActivity)
 	schedule.PUT("/activities/:id", h.scheduleHandler.UpdateActivity)
 	schedule.DELETE("/activities/:id", h.scheduleHandler.DeleteActivity)
+
+	boards := api.Group("/boards", authRequired)
+	boards.GET("", h.boardHandler.List)
+
+	cards := api.Group("/cards", authRequired)
+	cards.GET("/due", h.boardHandler.ListDueCards)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"strings"
 
@@ -17,12 +18,17 @@ import (
 	"gorm.io/gorm"
 )
 
-const planStepTitleMax = 255
+const (
+	planStepTitleMax = 255
+	// Gap between positions of steps added at the end (the first step is at 1000).
+	planStepPositionGap = 1000
+)
 
 type PlanStepServiceImpl interface {
 	Create(ctx context.Context, userID, planID uint, req *dto.PlanStepReq) response.SvcRes
 	Update(ctx context.Context, userID, id uint, req *dto.PlanStepUpdateReq) response.SvcRes
 	Toggle(ctx context.Context, userID, id uint, lang i18n.Lang, req *dto.PlanStepToggleReq) response.SvcRes
+	Move(ctx context.Context, userID, id uint, req *dto.PlanStepMoveReq) response.SvcRes
 	Delete(ctx context.Context, userID, id uint, lang i18n.Lang) response.SvcRes
 }
 
@@ -45,7 +51,12 @@ func NewPlanStepSvc() *planStepSvc {
 	}
 }
 
-// Create adds a step at the end of the plan and increments its step_count.
+// BackfillStepPositions numbers the steps created before step positions existed; see repo.BackfillPositions.
+func BackfillStepPositions(ctx context.Context) (int64, error) {
+	return repo.BackfillPositions(ctx, db.DB)
+}
+
+// Create adds a step at the end of the plan (or at req.Position) and increments its step_count.
 func (s *planStepSvc) Create(ctx context.Context, userID, planID uint, req *dto.PlanStepReq) response.SvcRes {
 	plan, res, ok := s.findOwnPlan(ctx, userID, planID)
 	if !ok {
@@ -62,7 +73,21 @@ func (s *planStepSvc) Create(ctx context.Context, userID, planID uint, req *dto.
 	}
 
 	step := &model.PlanStep{PlanID: plan.ID, Title: title, DueDate: dueDate}
+	if req.Position != nil {
+		if !validPosition(*req.Position) {
+			return response.SvcRespErr(i18n.Err(i18n.FieldInvalid, i18n.Params{"field": "position"}), http.StatusBadRequest)
+		}
+		step.Position = *req.Position
+	}
+
 	err = s.transaction(ctx, func(tx *gorm.DB) error {
+		if req.Position == nil {
+			last, err := s.planStepRepo.WithTx(tx).LastPosition(ctx, plan.ID)
+			if err != nil {
+				return fmt.Errorf("find last plan step position: %w", err)
+			}
+			step.Position = last + planStepPositionGap
+		}
 		if _, err := s.planStepRepo.WithTx(tx).Create(ctx, step); err != nil {
 			return fmt.Errorf("create plan step: %w", err)
 		}
@@ -172,6 +197,28 @@ func (s *planStepSvc) Toggle(ctx context.Context, userID, id uint, lang i18n.Lan
 	}, http.StatusOK)
 }
 
+// Move sets the step's position inside its plan; the client computes it from the new neighbours.
+func (s *planStepSvc) Move(ctx context.Context, userID, id uint, req *dto.PlanStepMoveReq) response.SvcRes {
+	step, _, res, ok := s.findOwnStep(ctx, userID, id)
+	if !ok {
+		return res
+	}
+	if req.Position == nil || !validPosition(*req.Position) {
+		return response.SvcRespErr(i18n.Err(i18n.FieldInvalid, i18n.Params{"field": "position"}), http.StatusBadRequest)
+	}
+
+	if err := s.planStepRepo.Update(ctx, map[string]any{"id": id}, map[string]any{"position": *req.Position}); err != nil {
+		return response.SvcRespErr(fmt.Errorf("move plan step: %w", err), http.StatusInternalServerError)
+	}
+	step.Position = *req.Position
+
+	return response.SvcRespSuccess(toPlanStepRes(step), http.StatusOK)
+}
+
+func validPosition(p float64) bool {
+	return !math.IsNaN(p) && !math.IsInf(p, 0)
+}
+
 // Delete removes the step and decrements the plan's step_count (and done_step_count if it was done).
 func (s *planStepSvc) Delete(ctx context.Context, userID, id uint, lang i18n.Lang) response.SvcRes {
 	step, plan, res, ok := s.findOwnStep(ctx, userID, id)
@@ -262,6 +309,7 @@ func toPlanStepRes(step *model.PlanStep) *dto.PlanStepRes {
 		Title:     step.Title,
 		Done:      step.Done,
 		DueDate:   formatOptionalDate(step.DueDate),
+		Position:  step.Position,
 		CreatedAt: step.CreatedAt,
 		UpdatedAt: step.UpdatedAt,
 	}

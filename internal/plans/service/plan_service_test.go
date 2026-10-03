@@ -48,6 +48,8 @@ type fakePlanRepo struct {
 	deleted     []uint
 	filter      *repo.PlanFilter
 	listUser    uint
+	stats       *repo.PlanStats
+	statsArgs   []time.Time
 }
 
 func newFakePlanRepo() *fakePlanRepo {
@@ -80,6 +82,11 @@ func (r *fakePlanRepo) List(_ context.Context, userID uint, filter *repo.PlanFil
 		}
 	}
 	return out, int64(len(out)), nil
+}
+
+func (r *fakePlanRepo) Stats(_ context.Context, _ uint, today, yearStart, nextYear time.Time) (*repo.PlanStats, error) {
+	r.statsArgs = []time.Time{today, yearStart, nextYear}
+	return r.stats, nil
 }
 
 func (r *fakePlanRepo) Create(_ context.Context, p *model.Plan) (*model.Plan, error) {
@@ -286,5 +293,62 @@ func TestDeletePlan(t *testing.T) {
 				t.Errorf("deleted = %v", planRepo.deleted)
 			}
 		})
+	}
+}
+
+func TestPlanListFilter(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     dto.PlanListReq
+		check   func(*repo.PlanFilter) bool
+		wantErr bool
+	}{
+		{name: "several statuses and areas",
+			req: dto.PlanListReq{Status: "NOT_START, IN_PROGRESS", AreaID: "1,4"},
+			check: func(f *repo.PlanFilter) bool {
+				return reflect.DeepEqual(f.Statuses, []string{"NOT_START", "IN_PROGRESS"}) &&
+					reflect.DeepEqual(f.AreaIDs, []int{1, 4})
+			}},
+		{name: "no filters", req: dto.PlanListReq{},
+			check: func(f *repo.PlanFilter) bool { return f.Statuses == nil && f.AreaIDs == nil && f.SortTargetDate != nil }},
+		{name: "sort by progress, descending", req: dto.PlanListReq{Sort: "-progress"},
+			check: func(f *repo.PlanFilter) bool { return f.SortProgress != nil && *f.SortProgress == "desc" }},
+		{name: "unknown status", req: dto.PlanListReq{Status: "NOT_START,LATER"}, wantErr: true},
+		{name: "invalid area id", req: dto.PlanListReq{AreaID: "1,x"}, wantErr: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			filter, err := planListFilter(&tt.req)
+			if tt.wantErr {
+				if key, _, _ := i18n.FromError(err); key != i18n.FieldInvalid {
+					t.Fatalf("err = %v, want FIELD_INVALID", err)
+				}
+				return
+			}
+			if err != nil || !tt.check(filter) {
+				t.Errorf("filter = %+v, err = %v", filter, err)
+			}
+		})
+	}
+}
+
+func TestPlanStats(t *testing.T) {
+	planRepo := newFakePlanRepo()
+	planRepo.stats = &repo.PlanStats{Active: 3, DoneThisYear: 2, Overdue: 1, AverageProgress: 41.6}
+
+	res := newTestPlanSvc(planRepo, nil, nil).Stats(context.Background(), 1, &dto.PlanStatsReq{Today: "2026-10-03"})
+
+	if res.Error != nil {
+		t.Fatalf("err = %v", res.Error)
+	}
+	want := &dto.PlanStatsRes{Active: 3, DoneThisYear: 2, Overdue: 1, AverageProgress: 42}
+	if !reflect.DeepEqual(res.Data, want) {
+		t.Errorf("stats = %+v, want %+v", res.Data, want)
+	}
+	day := func(s string) time.Time { d, _ := time.Parse("2006-01-02", s); return d }
+	wantArgs := []time.Time{day("2026-10-03"), day("2026-01-01"), day("2027-01-01")}
+	if !reflect.DeepEqual(planRepo.statsArgs, wantArgs) {
+		t.Errorf("repo args = %v, want %v", planRepo.statsArgs, wantArgs)
 	}
 }

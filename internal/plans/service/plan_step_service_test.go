@@ -28,8 +28,8 @@ func newFakePlanStepRepo() *fakePlanStepRepo {
 	return &fakePlanStepRepo{
 		nextID: 100,
 		steps: map[uint]*model.PlanStep{
-			1: {BaseModelID: model.BaseModelID{ID: 1}, PlanID: 1, Title: "Open account", Done: false},
-			2: {BaseModelID: model.BaseModelID{ID: 2}, PlanID: 1, Title: "Save $100", Done: true},
+			1: {BaseModelID: model.BaseModelID{ID: 1}, PlanID: 1, Title: "Open account", Done: false, Position: 1000},
+			2: {BaseModelID: model.BaseModelID{ID: 2}, PlanID: 1, Title: "Save $100", Done: true, Position: 2000},
 			3: {BaseModelID: model.BaseModelID{ID: 3}, PlanID: 2, Title: "Other user's step", Done: false},
 		},
 	}
@@ -52,6 +52,16 @@ func (r *fakePlanStepRepo) FindByPlan(_ context.Context, planID uint) ([]model.P
 		}
 	}
 	return out, nil
+}
+
+func (r *fakePlanStepRepo) LastPosition(_ context.Context, planID uint) (float64, error) {
+	last := 0.0
+	for _, s := range r.steps {
+		if s.PlanID == planID && s.Position > last {
+			last = s.Position
+		}
+	}
+	return last, nil
 }
 
 func (r *fakePlanStepRepo) Create(_ context.Context, s *model.PlanStep) (*model.PlanStep, error) {
@@ -82,6 +92,8 @@ func (r *fakePlanStepRepo) Update(_ context.Context, condition any, updates map[
 			}
 		case "done":
 			s.Done = v.(bool)
+		case "position":
+			s.Position = v.(float64)
 		}
 	}
 	return nil
@@ -282,5 +294,79 @@ func TestTogglePlanStep_ReachingAllDoneDoesNotAutoComplete(t *testing.T) {
 	}
 	if p.Status == enums.PlanStatusEnum(enums.PlanStatusDone) {
 		t.Error("plan auto-completed; marking done must stay a separate, explicit action")
+	}
+}
+
+func TestCreatePlanStep_Position(t *testing.T) {
+	tests := []struct {
+		name       string
+		position   *float64
+		planID     uint
+		want       float64
+		wantStatus int
+	}{
+		{name: "after the last step", planID: 1, want: 3000, wantStatus: http.StatusCreated},
+		{name: "explicit position (undo a delete)", planID: 1, position: new(1500.0), want: 1500, wantStatus: http.StatusCreated},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stepRepo, planRepo, areaRepo := newFakePlanStepRepo(), newFakePlanRepo(), newFakePlanAreaRepo()
+
+			res := newTestPlanStepSvc(stepRepo, planRepo, areaRepo).
+				Create(context.Background(), 1, tt.planID, &dto.PlanStepReq{Title: "New step", Position: tt.position})
+
+			if res.StatusCode != tt.wantStatus {
+				t.Fatalf("status = %d, want %d (err %v)", res.StatusCode, tt.wantStatus, res.Error)
+			}
+			if got := res.Data.(*dto.PlanStepRes).Position; got != tt.want {
+				t.Errorf("position = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestCreatePlanStep_FirstStepAt1000(t *testing.T) {
+	stepRepo, planRepo, areaRepo := newFakePlanStepRepo(), newFakePlanRepo(), newFakePlanAreaRepo()
+	planRepo.plans[3] = &model.Plan{BaseModelID: model.BaseModelID{ID: 3}, UserID: 1, AreaID: 1}
+
+	res := newTestPlanStepSvc(stepRepo, planRepo, areaRepo).
+		Create(context.Background(), 1, 3, &dto.PlanStepReq{Title: "First"})
+
+	if res.Error != nil || res.Data.(*dto.PlanStepRes).Position != 1000 {
+		t.Fatalf("res = %+v", res)
+	}
+}
+
+func TestMovePlanStep(t *testing.T) {
+	tests := []struct {
+		name       string
+		userID     uint
+		position   *float64
+		wantStatus int
+	}{
+		{name: "moved", userID: 1, position: new(500.0), wantStatus: http.StatusOK},
+		{name: "position missing", userID: 1, wantStatus: http.StatusBadRequest},
+		{name: "another user's step", userID: 2, position: new(500.0), wantStatus: http.StatusNotFound},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stepRepo, planRepo, areaRepo := newFakePlanStepRepo(), newFakePlanRepo(), newFakePlanAreaRepo()
+
+			res := newTestPlanStepSvc(stepRepo, planRepo, areaRepo).
+				Move(context.Background(), tt.userID, 2, &dto.PlanStepMoveReq{Position: tt.position})
+
+			if res.StatusCode != tt.wantStatus {
+				t.Fatalf("status = %d, want %d (err %v)", res.StatusCode, tt.wantStatus, res.Error)
+			}
+			want := 2000.0
+			if tt.wantStatus == http.StatusOK {
+				want = *tt.position
+			}
+			if got := stepRepo.steps[2].Position; got != want {
+				t.Errorf("stored position = %v, want %v", got, want)
+			}
+		})
 	}
 }

@@ -25,18 +25,20 @@ func NewPlanHandler() *PlanHandler {
 // List godoc
 //
 //	@Summary		List my plans
-//	@Description	One page of the signed-in user's plans. `q` matches the title.
+//	@Description	One page of the signed-in user's plans. `q` matches the title. `status` and `area_id` take several
+//	@Description	comma-separated values. Plans without a target date come last when sorting by target_date.
 //	@Tags			plans
 //	@Produce		json
 //	@Security		BearerAuth
-//	@Param			page			query		int		false	"Page (1-based)"						minimum(1)	default(1)
-//	@Param			limit			query		int		false	"Rows per page"							minimum(1)	maximum(1000)	default(10)
-//	@Param			status			query		string	false	"Status"								Enums(NOT_START, IN_PROGRESS, DONE)
-//	@Param			area_id			query		int		false	"Plan area ID"							minimum(1)
+//	@Param			page			query		int		false	"Page (1-based)"	minimum(1)	default(1)
+//	@Param			limit			query		int		false	"Rows per page"		minimum(1)	maximum(1000)	default(10)
+//	@Param			status			query		string	false	"Statuses, comma separated (NOT_START, IN_PROGRESS, DONE)"
+//	@Param			area_id			query		string	false	"Plan area IDs, comma separated"
 //	@Param			q				query		string	false	"Search in the title"					maxlength(100)
-//	@Param			sort			query		string	false	"Sort (\"-\" = descending)"				Enums(target_date, -target_date, created_at, -created_at, title, -title)	default(target_date)
+//	@Param			sort			query		string	false	"Sort (\"-\" = descending)"				Enums(target_date, -target_date, created_at, -created_at, title, -title, progress, -progress)	default(target_date)
 //	@Param			Accept-Language	header		string	false	"Language of the area title and errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.Paginate{data=[]dto.PlanRes}
+//	@Failure		400				{object}	response.ErrorRes	"VALIDATION_FAILED, FIELD_INVALID (status or area_id)"
 //	@Router			/v1/plans [get]
 func (h *PlanHandler) List(c *gin.Context) {
 	var req dto.PlanListReq
@@ -54,10 +56,39 @@ func (h *PlanHandler) List(c *gin.Context) {
 	response.JsonSuccessResWithPage(c, res)
 }
 
+// Stats godoc
+//
+//	@Summary		Summarize my plans
+//	@Description	Active (NOT_START + IN_PROGRESS) plans, plans done this year, overdue active plans and the average
+//	@Description	progress of the active plans. `today` is the user's date; it defaults to today in UTC.
+//	@Tags			plans
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			today			query		string	false	"Current date (YYYY-MM-DD)"
+//	@Param			Accept-Language	header		string	false	"Language of errors"	Enums(en, km, ms)
+//	@Success		200				{object}	response.SuccessRes{data=dto.PlanStatsRes}
+//	@Failure		400				{object}	response.ErrorRes	"VALIDATION_FAILED (today not YYYY-MM-DD)"
+//	@Router			/v1/plans/stats [get]
+func (h *PlanHandler) Stats(c *gin.Context) {
+	var req dto.PlanStatsReq
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.JsonErrRes(c, err, http.StatusBadRequest)
+		return
+	}
+
+	res := h.planSvc.Stats(c.Request.Context(), middleware.CurrentUserID(c), &req)
+	if res.Error != nil {
+		response.JsonErrRes(c, res.Error, res.StatusCode)
+		return
+	}
+
+	response.JsonSuccessRes(c, res.Data, res.StatusCode)
+}
+
 // GetDetail godoc
 //
 //	@Summary		Get a plan
-//	@Description	Returns one of the signed-in user's plans, with its steps.
+//	@Description	Returns one of the signed-in user's plans, with its steps by position.
 //	@Tags			plans
 //	@Produce		json
 //	@Security		BearerAuth

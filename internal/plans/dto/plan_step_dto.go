@@ -6,6 +6,13 @@ type PlanStepReq struct {
 	Title string `json:"title" binding:"required,min=1,max=255" example:"Open a separate savings account"`
 	// Plain date, YYYY-MM-DD; omit for no due date.
 	DueDate *string `json:"due_date" binding:"omitempty,datetime=2006-01-02" example:"2026-10-31"`
+	// Omit to add the step at the end; set it to put the step back where it was (e.g. undoing a delete).
+	Position *float64 `json:"position" example:"1500"`
+}
+
+// PlanStepMoveReq moves a step inside its plan: the client sends the new position (between its new neighbours).
+type PlanStepMoveReq struct {
+	Position *float64 `json:"position" binding:"required" example:"1500"`
 }
 
 // PlanStepUpdateReq changes only the fields sent; a field left out (or null) keeps its value.
@@ -25,7 +32,9 @@ type PlanStepRes struct {
 	Title  string `json:"title" example:"Open a separate savings account"`
 	Done   bool   `json:"done" example:"false"`
 	// Plain date, YYYY-MM-DD; null when not set.
-	DueDate   *string   `json:"due_date" example:"2026-10-31"`
+	DueDate *string `json:"due_date" example:"2026-10-31"`
+	// Steps are listed by position, ascending.
+	Position  float64   `json:"position" example:"1000"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
