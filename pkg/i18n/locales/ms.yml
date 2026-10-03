@@ -38,6 +38,14 @@ INVALID_AMOUNT: "Jumlah mestilah antara {min} dan {max}, dengan paling banyak {d
 # Plans
 INVALID_PLAN_AREA: "Kawasan pelan yang dipilih tidak wujud."
 
+# Schedule
+INVALID_TIME_RANGE: "Masa tamat mestilah selepas masa mula."
+ACTIVITY_TOO_SHORT: "Aktiviti mestilah sekurang-kurangnya {min} minit."
+RECURRENCE_DAYS_REQUIRED: "Pilih sekurang-kurangnya satu hari."
+INVALID_RECURRENCE_UNTIL: "Tarikh tamat mestilah pada atau selepas tarikh mula."
+INVALID_DATE_RANGE: "Julat tarikh tidak sah; maksimum adalah {max} hari."
+SCOPE_DATE_REQUIRED: "Tarikh diperlukan apabila scope adalah \"this\"."
+
 # Auth
 INVALID_USERNAME: "Nama pengguna tidak sah."
 INVALID_EMAIL: "Alamat e-mel tidak sah."

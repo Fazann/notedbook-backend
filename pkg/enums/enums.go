@@ -74,3 +74,43 @@ const (
 	PlanStatusInProgress = "IN_PROGRESS"
 	PlanStatusDone       = "DONE"
 )
+
+// ScheduleActivityTypeEnum groups a schedule activity for the weekly summary and its color in the UI.
+type ScheduleActivityTypeEnum string
+
+const (
+	ScheduleActivityTypeMeeting  ScheduleActivityTypeEnum = "MEETING"
+	ScheduleActivityTypeLearning ScheduleActivityTypeEnum = "LEARNING"
+	ScheduleActivityTypeWork     ScheduleActivityTypeEnum = "WORK"
+	ScheduleActivityTypeExercise ScheduleActivityTypeEnum = "EXERCISE"
+	ScheduleActivityTypePersonal ScheduleActivityTypeEnum = "PERSONAL"
+	ScheduleActivityTypeFamily   ScheduleActivityTypeEnum = "FAMILY"
+	ScheduleActivityTypeOther    ScheduleActivityTypeEnum = "OTHER"
+)
+
+var ScheduleActivityTypeValues = []string{
+	string(ScheduleActivityTypeMeeting),
+	string(ScheduleActivityTypeLearning),
+	string(ScheduleActivityTypeWork),
+	string(ScheduleActivityTypeExercise),
+	string(ScheduleActivityTypePersonal),
+	string(ScheduleActivityTypeFamily),
+	string(ScheduleActivityTypeOther),
+}
+
+// RecurrenceKindEnum is how a schedule activity repeats; NONE is a single, one-off occurrence.
+type RecurrenceKindEnum string
+
+const (
+	RecurrenceKindNone     RecurrenceKindEnum = "NONE"
+	RecurrenceKindDaily    RecurrenceKindEnum = "DAILY"
+	RecurrenceKindWeekdays RecurrenceKindEnum = "WEEKDAYS"
+	RecurrenceKindWeekly   RecurrenceKindEnum = "WEEKLY"
+)
+
+var RecurrenceKindValues = []string{
+	string(RecurrenceKindNone),
+	string(RecurrenceKindDaily),
+	string(RecurrenceKindWeekdays),
+	string(RecurrenceKindWeekly),
+}

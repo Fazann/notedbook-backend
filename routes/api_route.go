@@ -8,6 +8,7 @@ import (
 	attachmentService "github.com/Fazann/notedbook-backend/internal/attachments/service"
 	expenseHandler "github.com/Fazann/notedbook-backend/internal/exspense/handler"
 	planHandler "github.com/Fazann/notedbook-backend/internal/plans/handler"
+	scheduleHandler "github.com/Fazann/notedbook-backend/internal/schedule/handler"
 	userHandler "github.com/Fazann/notedbook-backend/internal/users/handler"
 	"github.com/Fazann/notedbook-backend/pkg/redis"
 	"github.com/Fazann/notedbook-backend/shared/middleware"
@@ -23,6 +24,7 @@ type handlers struct {
 	planAreaHandler   planHandler.PlanAreaHandler
 	planHandler       planHandler.PlanHandler
 	planStepHandler   planHandler.PlanStepHandler
+	scheduleHandler   scheduleHandler.ScheduleHandler
 }
 
 func newHandlers() *handlers {
@@ -35,6 +37,7 @@ func newHandlers() *handlers {
 		planAreaHandler:   *planHandler.NewPlanAreaHandler(),
 		planHandler:       *planHandler.NewPlanHandler(),
 		planStepHandler:   *planHandler.NewPlanStepHandler(),
+		scheduleHandler:   *scheduleHandler.NewScheduleHandler(),
 	}
 }
 
@@ -90,4 +93,12 @@ func initAPIRoute(r *gin.Engine) {
 	steps.PUT("/:id", h.planStepHandler.Update)
 	steps.PATCH("/:id/toggle", h.planStepHandler.Toggle)
 	steps.DELETE("/:id", h.planStepHandler.Delete)
+
+	schedule := api.Group("/schedule", authRequired)
+	schedule.GET("/occurrences", h.scheduleHandler.ListOccurrences)
+	schedule.GET("/summary", h.scheduleHandler.GetWeekSummary)
+	schedule.GET("/activities/:id", h.scheduleHandler.GetActivity)
+	schedule.POST("/activities", h.scheduleHandler.CreateActivity)
+	schedule.PUT("/activities/:id", h.scheduleHandler.UpdateActivity)
+	schedule.DELETE("/activities/:id", h.scheduleHandler.DeleteActivity)
 }

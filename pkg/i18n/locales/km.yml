@@ -38,6 +38,14 @@ INVALID_AMOUNT: "ចំនួនទឹកប្រាក់ត្រូវនៅ
 # Plans
 INVALID_PLAN_AREA: "វិស័យផែនការដែលបានជ្រើសរើសមិនមានទេ។"
 
+# Schedule
+INVALID_TIME_RANGE: "ម៉ោងបញ្ចប់ត្រូវនៅក្រោយម៉ោងចាប់ផ្ដើម។"
+ACTIVITY_TOO_SHORT: "សកម្មភាពត្រូវមានរយៈពេលយ៉ាងហោចណាស់ {min} នាទី។"
+RECURRENCE_DAYS_REQUIRED: "សូមជ្រើសរើសយ៉ាងហោចណាស់មួយថ្ងៃ។"
+INVALID_RECURRENCE_UNTIL: "ថ្ងៃបញ្ចប់ត្រូវនៅពីក្រោយ ឬស្មើថ្ងៃចាប់ផ្ដើម។"
+INVALID_DATE_RANGE: "ចន្លោះកាលបរិច្ឆេទមិនត្រឹមត្រូវទេ; អតិបរមាគឺ {max} ថ្ងៃ។"
+SCOPE_DATE_REQUIRED: "តម្រូវឱ្យមានកាលបរិច្ឆេទនៅពេល scope ជា \"this\"។"
+
 # Auth
 INVALID_USERNAME: "ឈ្មោះអ្នកប្រើមិនត្រឹមត្រូវទេ។"
 INVALID_EMAIL: "អាសយដ្ឋានអ៊ីមែលមិនត្រឹមត្រូវទេ។"

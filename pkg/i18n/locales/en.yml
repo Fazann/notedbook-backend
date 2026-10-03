@@ -41,6 +41,14 @@ INVALID_AMOUNT: "The amount must be between {min} and {max}, with at most {decim
 # Plans
 INVALID_PLAN_AREA: "The selected plan area does not exist."
 
+# Schedule
+INVALID_TIME_RANGE: "End time must be after start time."
+ACTIVITY_TOO_SHORT: "An activity must be at least {min} minutes."
+RECURRENCE_DAYS_REQUIRED: "Choose at least one day."
+INVALID_RECURRENCE_UNTIL: "End date must be on or after the start date."
+INVALID_DATE_RANGE: "The date range is invalid; the maximum is {max} days."
+SCOPE_DATE_REQUIRED: "A date is required when scope is \"this\"."
+
 # Auth
 INVALID_USERNAME: "The username is not valid."
 INVALID_EMAIL: "The email address is not valid."

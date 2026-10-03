@@ -23,6 +23,9 @@ func main() {
 		model.PlanAreaTr{},
 		model.Plan{},
 		model.PlanStep{},
+		model.ScheduleActivity{},
+		model.ScheduleActivityDay{},
+		model.ScheduleActivityException{},
 	)
 
 	if err != nil {

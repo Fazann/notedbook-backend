@@ -53,6 +53,18 @@ const (
 	InvalidAmount Key = "INVALID_AMOUNT"
 	// The selected plan area does not exist.
 	InvalidPlanArea Key = "INVALID_PLAN_AREA"
+	// End time must be after start time.
+	InvalidTimeRange Key = "INVALID_TIME_RANGE"
+	// An activity must be at least {min} minutes.
+	ActivityTooShort Key = "ACTIVITY_TOO_SHORT"
+	// Choose at least one day.
+	RecurrenceDaysRequired Key = "RECURRENCE_DAYS_REQUIRED"
+	// End date must be on or after the start date.
+	InvalidRecurrenceUntil Key = "INVALID_RECURRENCE_UNTIL"
+	// The date range is invalid; the maximum is {max} days.
+	InvalidDateRange Key = "INVALID_DATE_RANGE"
+	// A date is required when scope is "this".
+	ScopeDateRequired Key = "SCOPE_DATE_REQUIRED"
 	// The username is not valid.
 	InvalidUsername Key = "INVALID_USERNAME"
 	// The email address is not valid.
@@ -128,6 +140,12 @@ var AllKeys = []Key{
 	InvalidCurrency,
 	InvalidAmount,
 	InvalidPlanArea,
+	InvalidTimeRange,
+	ActivityTooShort,
+	RecurrenceDaysRequired,
+	InvalidRecurrenceUntil,
+	InvalidDateRange,
+	ScopeDateRequired,
 	InvalidUsername,
 	InvalidEmail,
 	UsernameTaken,
