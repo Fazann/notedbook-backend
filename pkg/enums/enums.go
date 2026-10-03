@@ -58,3 +58,19 @@ var CurrencyValues = []string{
 	string(CurrencyEnumKHRiel),
 	string(CurrencyEnumMYR),
 }
+
+type PlanPriorityEnum string
+
+const (
+	PlanPriorityLow    = "LOW"
+	PlanPriorityMedium = "MEDIUM"
+	PlanPriorityHigh   = "HIGH"
+)
+
+type PlanStatusEnum string
+
+const (
+	PlanStatusNotStart   = "NOT_START"
+	PlanStatusInProgress = "IN_PROGRESS"
+	PlanStatusDone       = "DONE"
+)

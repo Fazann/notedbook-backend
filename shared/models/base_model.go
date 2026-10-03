@@ -10,6 +10,12 @@ type BaseModelID struct {
 	ID uint `gorm:"primarykey" json:"id"`
 }
 
+type BaseModelDateColumns struct {
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+}
+
 type BaseModelGorm struct {
 	CreatedAt time.Time      `json:"created_at"`
 	CreatedBy uint           `json:"created_by"`

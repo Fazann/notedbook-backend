@@ -7,6 +7,7 @@ import (
 	"github.com/Fazann/notedbook-backend/internal/attachments/handler"
 	attachmentService "github.com/Fazann/notedbook-backend/internal/attachments/service"
 	expenseHandler "github.com/Fazann/notedbook-backend/internal/exspense/handler"
+	planHandler "github.com/Fazann/notedbook-backend/internal/plans/handler"
 	userHandler "github.com/Fazann/notedbook-backend/internal/users/handler"
 	"github.com/Fazann/notedbook-backend/pkg/redis"
 	"github.com/Fazann/notedbook-backend/shared/middleware"
@@ -19,6 +20,7 @@ type handlers struct {
 	userHandler       userHandler.UserHandler
 	categoryHandler   expenseHandler.CategoryHandler
 	expenseHandler    expenseHandler.ExpenseHandler
+	planAreaHandler   planHandler.PlanAreaHandler
 }
 
 func newHandlers() *handlers {
@@ -28,6 +30,7 @@ func newHandlers() *handlers {
 		userHandler:       *userHandler.NewUserHandler(attachmentService.NewAttachmentSvc()),
 		categoryHandler:   *expenseHandler.NewCategoryHandler(),
 		expenseHandler:    *expenseHandler.NewExpenseHandler(),
+		planAreaHandler:   *planHandler.NewPlanAreaHandler(),
 	}
 }
 
@@ -66,4 +69,7 @@ func initAPIRoute(r *gin.Engine) {
 	expenses.POST("", h.expenseHandler.Create)
 	expenses.PUT("/:id", h.expenseHandler.Update)
 	expenses.DELETE("/:id", h.expenseHandler.Delete)
+
+	planAreas := api.Group("/plan-areas", authRequired)
+	planAreas.GET("", h.planAreaHandler.List)
 }

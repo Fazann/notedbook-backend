@@ -19,6 +19,8 @@ func main() {
 		model.ExpenseCategory{},
 		model.ExpenseCategoryTr{},
 		model.Expense{},
+		model.PlanArea{},
+		model.PlanAreaTr{},
 	)
 
 	if err != nil {
