@@ -7,10 +7,13 @@ import (
 	planService "github.com/Fazann/notedbook-backend/internal/plans/service"
 	"github.com/Fazann/notedbook-backend/pkg/db"
 	"github.com/Fazann/notedbook-backend/pkg/logger"
+	"github.com/Fazann/notedbook-backend/pkg/redis"
 )
 
 func main() {
 	db.Connect()
+	// Seeding plan areas clears their cache.
+	redis.InitRedis()
 
 	ctx := context.Background()
 

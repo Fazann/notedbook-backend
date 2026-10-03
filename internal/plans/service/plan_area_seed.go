@@ -32,8 +32,13 @@ func SeedDefaultPlanAreas(ctx context.Context) (int, error) {
 	return NewPlanAreaSvc().seedDefaults(ctx)
 }
 
-func (s *planAreaSvc) seedDefaults(ctx context.Context) (int, error) {
-	created := 0
+func (s *planAreaSvc) seedDefaults(ctx context.Context) (created int, err error) {
+	defer func() {
+		if created > 0 {
+			s.invalidateCache(ctx)
+		}
+	}()
+
 	for _, item := range defaultPlanAreas {
 		_, err := s.planAreaRepo.FindByTitle(ctx, item.title)
 		if err == nil {

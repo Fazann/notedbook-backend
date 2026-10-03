@@ -84,6 +84,7 @@ func initAPIRoute(r *gin.Engine) {
 
 	planAreas := api.Group("/plan-areas", authRequired)
 	planAreas.GET("", h.planAreaHandler.List)
+	planAreas.DELETE("/cache", rl.LimitIP(10, time.Minute), h.planAreaHandler.ResetCache)
 
 	plans := api.Group("/plans", authRequired)
 	plans.GET("", h.planHandler.List)
