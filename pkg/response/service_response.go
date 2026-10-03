@@ -1,5 +1,10 @@
 package response
 
+import (
+	"math"
+	"net/http"
+)
+
 type SvcRes struct {
 	Data       interface{}
 	Error      error
@@ -27,6 +32,20 @@ func SvcRespSuccess(data any, statusCode int) SvcRes {
 	return SvcRes{
 		Data:       data,
 		StatusCode: statusCode,
+	}
+}
+
+// SvcRespPage builds a paginated 200 OK response, computing TotalPage and the IsNext / IsPrev
+// flags from page, limit and total so callers don't repeat the math.
+func SvcRespPage(data any, page, limit int, total int64) SvcResWithPaginate {
+	totalPage := int(math.Ceil(float64(total) / float64(limit)))
+	return SvcResWithPaginate{
+		Data:       data,
+		StatusCode: http.StatusOK,
+		IsNext:     page < totalPage,
+		IsPrev:     page > 1,
+		Total:      total,
+		TotalPage:  totalPage,
 	}
 }
 

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
 	"net/http"
 	"slices"
 	"strings"
@@ -61,15 +60,7 @@ func (s *categorySvc) List(ctx context.Context, userID uint, lang i18n.Lang, req
 		return response.SvcResWithPaginate{Error: fmt.Errorf("list categories: %w", err), StatusCode: http.StatusInternalServerError}
 	}
 
-	totalPage := int(math.Ceil(float64(total) / float64(limit)))
-	return response.SvcResSucWithPage(response.Paginate{
-		Data:       toCategoryResList(categories, lang),
-		StatusCode: http.StatusOK,
-		IsNext:     page < totalPage,
-		IsPrev:     page > 1,
-		Total:      total,
-		TotalPage:  totalPage,
-	})
+	return response.SvcRespPage(toCategoryResList(categories, lang), page, limit, total)
 }
 
 func (s *categorySvc) ListAll(ctx context.Context, userID uint, lang i18n.Lang) response.SvcRes {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
 	"net/http"
 	"slices"
 	"strings"
@@ -65,15 +64,7 @@ func (s *expenseSvc) List(ctx context.Context, userID uint, req *dto.ExpenseList
 		return response.SvcResWithPaginate{Error: fmt.Errorf("list expenses: %w", err), StatusCode: http.StatusInternalServerError}
 	}
 
-	totalPage := int(math.Ceil(float64(total) / float64(limit)))
-	return response.SvcResSucWithPage(response.Paginate{
-		Data:       toExpenseResList(expenses),
-		StatusCode: http.StatusOK,
-		IsNext:     page < totalPage,
-		IsPrev:     page > 1,
-		Total:      total,
-		TotalPage:  totalPage,
-	})
+	return response.SvcRespPage(toExpenseResList(expenses), page, limit, total)
 }
 
 func (s *expenseSvc) GetDetail(ctx context.Context, userID, id uint) response.SvcRes {
