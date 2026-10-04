@@ -43,7 +43,7 @@ go test ./...   # must pass
 
 `make test-util` references `tests/util`, which does not exist yet. Do not rely on it; say so if a task needs it.
 `make build` builds the Docker image from the multi-stage `Dockerfile`; `.env` is never copied into it.
-The Swagger UI route lives in `routes/swagger.go`; `-tags noswagger` (the Docker default) builds without it.
+The Swagger UI route lives in `routes/swagger.go`; `-tags noswagger` builds without it (the Docker image includes it unless built with `SWAGGER=false`).
 
 `make seed` runs only `cmd/seed/main.go` (`go run` on one file), so keep seed logic in the module
 (e.g. `internal/exspense/service/category_seed.go`) and call it from `main.go`. Seeds must be safe to run again.

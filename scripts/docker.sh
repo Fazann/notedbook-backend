@@ -8,7 +8,7 @@
 #
 # Config comes from .env (or ENV_FILE=path). localhost / 127.0.0.1 in DB_HOST and REDIS_ADDR is
 # replaced by host.docker.internal, so the container reaches Postgres and Redis on this machine.
-# SWAGGER=true includes the Swagger UI (/docs/index.html) in the API image.
+# SWAGGER=false leaves the Swagger UI (/docs/index.html) out of the API image.
 # IMAGE, CONTAINER, PLATFORM and HOST_PORT (port on this machine, default $PORT) can be overridden the
 # same way, e.g. HOST_PORT=3011 scripts/docker.sh run when `make run` already uses 3010.
 set -euo pipefail
@@ -16,7 +16,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 IMAGE="${IMAGE:-notebook-api:latest}"
-SWAGGER="${SWAGGER:-false}"
+SWAGGER="${SWAGGER:-true}"
 CONTAINER="${CONTAINER:-notebook-api}"
 ENV_FILE="${ENV_FILE:-.env}"
 PLATFORM="${PLATFORM:-}"
