@@ -33,6 +33,7 @@ var (
 	RedisPassword string
 	RedisDB       int = 0
 	RedisPort     string
+	RedisTLS      bool
 	Environment   string
 
 	JwtSecret       string
@@ -108,6 +109,12 @@ func init() {
 		RedisDB, err = strconv.Atoi(redisDbStr)
 		if err != nil {
 			log.Fatal("Error converting REDIS_DB to number")
+		}
+	}
+	if v := os.Getenv("REDIS_TLS"); v != "" {
+		RedisTLS, err = strconv.ParseBool(v)
+		if err != nil {
+			log.Fatal("Error converting REDIS_TLS to bool")
 		}
 	}
 
