@@ -92,7 +92,7 @@ func init() {
 	DbName = os.Getenv("DB_NAME")
 	DbHost = os.Getenv("DB_HOST")
 	DbPort = os.Getenv("DB_PORT")
-	DbSSLMode = getEnvDefault("DB_SSLMODE", "disable")
+	DbSSLMode = getEnvDefault("DB_SSLMODE", "require")
 	DbTimeZone = getEnvDefault("DB_TIMEZONE", "UTC")
 
 	DbMaxOpenConns = getEnvInt("DB_MAX_OPEN_CONNS", DbMaxOpenConns)
