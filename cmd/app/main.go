@@ -37,7 +37,7 @@ func main() {
 	// Init api router
 	routes.InitRouter(r)
 
-	logger.Info("application starting", "port", config.Port, "swagger", "/swagger/index.html")
+	logger.Info("application starting", "port", config.Port, "swagger", "/docs/index.html")
 	if err := r.Run(":" + config.Port); err != nil {
 		logger.Fatal("application start failed", "err", err)
 	}

@@ -1,0 +1,15 @@
+# Secrets: config comes from env vars at run time, never baked into the image.
+.env
+.env.*
+!.env.example
+
+.git
+.vscode
+.air.toml
+tmp
+temp
+# Generated in the build stage.
+docs
+*.md
+Dockerfile
+.dockerignore

@@ -27,7 +27,7 @@ make run
 ```
 
 The API is served at `http://localhost:<PORT>/api`, and Swagger UI at
-`http://localhost:<PORT>/swagger/index.html` (not served when `ENVIRONMENT=production`).
+`http://localhost:<PORT>/docs/index.html` (not served when `ENVIRONMENT=production`, and left out of Docker images unless built with `SWAGGER=true`).
 
 ## Environment variables
 
@@ -63,7 +63,8 @@ Copy `.env.example` to `.env`. All variables are read in `config/config.go`.
 | `make seed` | Runs `cmd/seed`: inserts the 10 default expense categories (shared by every user, with en/km/ms names). Safe to run again; existing defaults are skipped. Run `make migrate` first. |
 | `make swagger` | Formats the Swagger annotations and generates `docs/` (`docs.go`, `swagger.json`, `swagger.yaml`) with swag v1.16.6. Run it after changing a handler annotation or a response DTO. |
 | `make locale` | Checks `pkg/i18n/locales/*.yml` (same keys and `{placeholders}` in every language) and generates the key constants in `pkg/i18n/keys_gen.go`. Run it after adding or renaming a translation key. |
-| `make build` | Builds the Docker image `clinic-api:latest` for `linux/amd64`. Needs a `Dockerfile`, which does not exist yet, and the image name is still the one from the clinic project. |
+| `make build` | Builds the API image `notebook-api:latest` for `linux/amd64` from the multi-stage `Dockerfile` (~14 MB: one static binary on `scratch`). Swagger UI is left out unless you add `--build-arg SWAGGER=true`. Pass config as env vars, e.g. `docker run --env-file .env -p 3010:3010 notebook-api`. |
+| `scripts/docker.sh <build\|run\|logs\|stop>` | Builds and runs the API image locally with `.env`. `run` starts the API in the background. Migrations and seeds are not in the image; run `make migrate` / `make seed`. `localhost` in `DB_HOST` / `REDIS_ADDR` is rewritten to `host.docker.internal`. Set `HOST_PORT=3011` when `make run` already uses the port, `SWAGGER=true` to include the Swagger UI. Run it without arguments for help. |
 | `make test-util` | Copies `.env.example` to `.env` if needed, then runs the tests in `./tests/util`. That folder does not exist yet; run all tests with `go test ./...`. |
 
 ## Folder structure

@@ -20,7 +20,7 @@ run:
 
 
 # Build docker image
-DOCKER_IMAGE=clinic-api:latest
+DOCKER_IMAGE=notebook-api:latest
 .PHONY: build
 build:
 	@echo "Start build docker image"
