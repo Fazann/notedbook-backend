@@ -4,3 +4,5 @@ docs
 .vscode
 tmp
 temp/*
+
+.DS_Store

@@ -44,6 +44,15 @@ var CategoryColorValues = []string{
 	"red", "orange", "amber", "green", "teal", "blue", "violet", "pink", "slate",
 }
 
+// BudgetStatusEnum says how a month's spending compares with a budget.
+type BudgetStatusEnum string
+
+const (
+	BudgetStatusOK   BudgetStatusEnum = "ok"
+	BudgetStatusNear BudgetStatusEnum = "near"
+	BudgetStatusOver BudgetStatusEnum = "over"
+)
+
 // CurrencyEnum is an ISO 4217 code. Amounts are stored in minor units: USD cents, KHR riel, MYR sen.
 type CurrencyEnum string
 

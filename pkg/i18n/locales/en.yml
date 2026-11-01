@@ -40,6 +40,9 @@ INVALID_EXPENSE_CATEGORY: "The selected category does not exist."
 INVALID_CURRENCY: "Only these currencies are supported: {currencies}."
 INVALID_AMOUNT: "The amount must be between {min} and {max}, with at most {decimals} decimal places."
 
+# Budgets
+BUDGET_EXISTS: "You already have a budget in this currency."
+
 # Plans
 INVALID_PLAN_AREA: "The selected plan area does not exist."
 

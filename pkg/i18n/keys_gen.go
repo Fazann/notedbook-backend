@@ -55,6 +55,8 @@ const (
 	InvalidCurrency Key = "INVALID_CURRENCY"
 	// The amount must be between {min} and {max}, with at most {decimals} decimal places.
 	InvalidAmount Key = "INVALID_AMOUNT"
+	// You already have a budget in this currency.
+	BudgetExists Key = "BUDGET_EXISTS"
 	// The selected plan area does not exist.
 	InvalidPlanArea Key = "INVALID_PLAN_AREA"
 	// End time must be after start time.
@@ -145,6 +147,7 @@ var AllKeys = []Key{
 	InvalidExpenseCategory,
 	InvalidCurrency,
 	InvalidAmount,
+	BudgetExists,
 	InvalidPlanArea,
 	InvalidTimeRange,
 	ActivityTooShort,

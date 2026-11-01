@@ -37,6 +37,9 @@ INVALID_EXPENSE_CATEGORY: "ប្រភេទដែលបានជ្រើស�
 INVALID_CURRENCY: "គាំទ្រតែរូបិយប័ណ្ណទាំងនេះប៉ុណ្ណោះ៖ {currencies}។"
 INVALID_AMOUNT: "ចំនួនទឹកប្រាក់ត្រូវនៅចន្លោះពី {min} ដល់ {max} ដោយមានខ្ទង់ទសភាគមិនលើសពី {decimals}។"
 
+# Budgets
+BUDGET_EXISTS: "អ្នកមានថវិកាជារូបិយប័ណ្ណនេះរួចហើយ។"
+
 # Plans
 INVALID_PLAN_AREA: "វិស័យផែនការដែលបានជ្រើសរើសមិនមានទេ។"
 
