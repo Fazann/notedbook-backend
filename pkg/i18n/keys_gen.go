@@ -57,6 +57,10 @@ const (
 	InvalidAmount Key = "INVALID_AMOUNT"
 	// You already have a budget in this currency.
 	BudgetExists Key = "BUDGET_EXISTS"
+	// Turn on at least one currency.
+	NoCurrencyEnabled Key = "NO_CURRENCY_ENABLED"
+	// The default currency must be one of the currencies you turned on.
+	DefaultCurrencyNotEnabled Key = "DEFAULT_CURRENCY_NOT_ENABLED"
 	// The selected plan area does not exist.
 	InvalidPlanArea Key = "INVALID_PLAN_AREA"
 	// End time must be after start time.
@@ -148,6 +152,8 @@ var AllKeys = []Key{
 	InvalidCurrency,
 	InvalidAmount,
 	BudgetExists,
+	NoCurrencyEnabled,
+	DefaultCurrencyNotEnabled,
 	InvalidPlanArea,
 	InvalidTimeRange,
 	ActivityTooShort,

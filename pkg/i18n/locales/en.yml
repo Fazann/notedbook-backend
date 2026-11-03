@@ -43,6 +43,10 @@ INVALID_AMOUNT: "The amount must be between {min} and {max}, with at most {decim
 # Budgets
 BUDGET_EXISTS: "You already have a budget in this currency."
 
+# Currency settings
+NO_CURRENCY_ENABLED: "Turn on at least one currency."
+DEFAULT_CURRENCY_NOT_ENABLED: "The default currency must be one of the currencies you turned on."
+
 # Plans
 INVALID_PLAN_AREA: "The selected plan area does not exist."
 

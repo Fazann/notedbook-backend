@@ -23,6 +23,7 @@ func main() {
 		model.ExpenseCategoryTr{},
 		model.Expense{},
 		model.Budget{},
+		model.CurrencySetting{},
 		model.PlanArea{},
 		model.PlanAreaTr{},
 		model.Plan{},

@@ -40,6 +40,10 @@ INVALID_AMOUNT: "Jumlah mestilah antara {min} dan {max}, dengan paling banyak {d
 # Budgets
 BUDGET_EXISTS: "Anda sudah mempunyai bajet dalam mata wang ini."
 
+# Currency settings
+NO_CURRENCY_ENABLED: "Hidupkan sekurang-kurangnya satu mata wang."
+DEFAULT_CURRENCY_NOT_ENABLED: "Mata wang lalai mesti salah satu mata wang yang anda hidupkan."
+
 # Plans
 INVALID_PLAN_AREA: "Kawasan pelan yang dipilih tidak wujud."
 

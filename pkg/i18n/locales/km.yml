@@ -40,6 +40,10 @@ INVALID_AMOUNT: "ចំនួនទឹកប្រាក់ត្រូវនៅ
 # Budgets
 BUDGET_EXISTS: "អ្នកមានថវិកាជារូបិយប័ណ្ណនេះរួចហើយ។"
 
+# Currency settings
+NO_CURRENCY_ENABLED: "សូមបើករូបិយប័ណ្ណយ៉ាងហោចណាស់មួយ។"
+DEFAULT_CURRENCY_NOT_ENABLED: "រូបិយប័ណ្ណលំនាំដើមត្រូវតែជារូបិយប័ណ្ណមួយដែលអ្នកបានបើក។"
+
 # Plans
 INVALID_PLAN_AREA: "វិស័យផែនការដែលបានជ្រើសរើសមិនមានទេ។"
 

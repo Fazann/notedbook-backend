@@ -24,6 +24,7 @@ type handlers struct {
 	categoryHandler   expenseHandler.CategoryHandler
 	expenseHandler    expenseHandler.ExpenseHandler
 	budgetHandler     expenseHandler.BudgetHandler
+	currencyHandler   expenseHandler.CurrencySettingHandler
 	planAreaHandler   planHandler.PlanAreaHandler
 	planHandler       planHandler.PlanHandler
 	planStepHandler   planHandler.PlanStepHandler
@@ -40,6 +41,7 @@ func newHandlers() *handlers {
 		categoryHandler:   *expenseHandler.NewCategoryHandler(),
 		expenseHandler:    *expenseHandler.NewExpenseHandler(),
 		budgetHandler:     *expenseHandler.NewBudgetHandler(),
+		currencyHandler:   *expenseHandler.NewCurrencySettingHandler(),
 		planAreaHandler:   *planHandler.NewPlanAreaHandler(),
 		planHandler:       *planHandler.NewPlanHandler(),
 		planStepHandler:   *planHandler.NewPlanStepHandler(),
@@ -92,6 +94,10 @@ func initAPIRoute(r *gin.Engine) {
 	budgets.POST("", h.budgetHandler.Create)
 	budgets.PUT("/:id", h.budgetHandler.Update)
 	budgets.DELETE("/:id", h.budgetHandler.Delete)
+
+	currencySettings := api.Group("/currency-settings", authRequired)
+	currencySettings.GET("", h.currencyHandler.Get)
+	currencySettings.PUT("", h.currencyHandler.Update)
 
 	planAreas := api.Group("/plan-areas", authRequired)
 	planAreas.GET("", h.planAreaHandler.List)

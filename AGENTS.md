@@ -185,6 +185,31 @@ Rules:
 | `pkg/i18n/keys_gen.go` | `make locale` |
 | `docs/` | `make swagger` |
 
+## Regression check (after every feature or change)
+
+Every change — a new feature, a bug fix, a refactor, even a "small" tweak — must be checked for regressions
+before you say it is done. A change is not finished just because the new behavior works.
+
+1. **Record a baseline first.** Before editing, run `go build ./...`, `go vet ./...` and `go test ./...` (or
+   note the result from a clean `main`) so you know which failures already existed.
+2. **Find what you touched.** For every changed function, method, struct field, DTO, model, route, enum or
+   i18n key, search its callers (`grep -rn "<Name>" .`) and check each one still works. Changing shared code
+   (`shared/`, `pkg/`, `baserepo`, middleware, `config`) means checking **every** module that uses it.
+3. **Re-run the checks** (`go build ./...`, `go vet ./...`, `gofmt -l .`, `go test ./...`) and compare with the
+   baseline: no new errors, no new failing tests, no tests deleted or skipped to make the run pass.
+4. **Protect the API contract.** Compare request/response JSON, status codes, endpoint paths and error `code`s
+   before and after. The frontend depends on them: a renamed field, a changed status or a removed key is a
+   breaking change. Avoid it, or call it out explicitly for the frontend.
+5. **Check data and side effects:** existing rows still load after a model change (`make migrate` on a copy
+   of the data, defaults for new columns), ownership checks still apply, transactions still wrap multi-step
+   writes, and lists keep their filters, sorting and paging.
+6. **Exercise the changed endpoints** with `make run` (Swagger UI or `curl`), including the error paths
+   (invalid input, not found, another user's record), and the endpoints that share the changed code.
+7. **Add a test for what could break:** a behavior you changed or a bug you fixed gets a test that fails
+   without your change.
+8. **Report honestly.** In your final message, list what you checked, any failures that existed before your
+   change (and that they are not yours), and anything you could not check.
+
 ## Definition of done
 
 - [ ] `go build ./...`, `go vet ./...`, `go test ./...` pass and `gofmt -l .` prints nothing
@@ -195,3 +220,5 @@ Rules:
 - [ ] New models in `cmd/migration/main.go`
 - [ ] Tests added or updated for changed logic
 - [ ] Any change to endpoints or response shapes called out for the frontend
+- [ ] Regression check done (see above): callers reviewed, no new build / vet / test failures compared
+      with the baseline, API contract unchanged or the change called out
