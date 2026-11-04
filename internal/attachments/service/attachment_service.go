@@ -22,9 +22,9 @@ import (
 )
 
 type AttachmentServiceImpl interface {
-	GetDetail(ctx context.Context, id uint) response.SvcRes
+	GetDetail(ctx context.Context, id uint, userID uint) response.SvcRes
 	UploadFile(ctx context.Context, file dto.FileData) response.SvcRes
-	MarkUsed(ctx context.Context, id uint, types ...enums.AttachmentTypeEnum) error
+	MarkUsed(ctx context.Context, id uint, userID uint, types ...enums.AttachmentTypeEnum) error
 	Delete(ctx context.Context, id uint, deletedBy uint) error
 }
 
@@ -57,8 +57,32 @@ var videoMimetype = []string{
 	"video/mp4",        // MP4 (most common)
 	"video/webm",       // WebM (modern web video)
 	"video/ogg",        // OGG video
+	"video/avi",        // AVI, as http.DetectContentType names it
 	"video/x-msvideo",  // AVI
 	"video/x-matroska", // MKV
+}
+
+// AllowedMimetypes lists what can be uploaded, for error messages.
+const AllowedMimetypes = "image, audio, video"
+
+// IsAllowedMimetype reports whether a detected MIME type may be uploaded (images, audio and video).
+func IsAllowedMimetype(mimetype string) bool {
+	return utils.IsInclude(imageMimetype, mimetype) ||
+		utils.IsInclude(audioMimetype, mimetype) ||
+		utils.IsInclude(videoMimetype, mimetype)
+}
+
+// extByMimetype names stored files by their detected type, never by the client's file name.
+var extByMimetype = map[string]string{
+	"image/jpeg": ".jpg", "image/png": ".png", "image/gif": ".gif", "image/webp": ".webp",
+	"image/bmp": ".bmp", "image/x-icon": ".ico",
+	"audio/mpeg": ".mp3", "audio/wave": ".wav", "audio/wav": ".wav", "audio/x-wav": ".wav",
+	"video/mp4": ".mp4", "video/webm": ".webm", "video/avi": ".avi",
+}
+
+// ExtForMimetype returns the file extension for a detected MIME type ("" when unknown).
+func ExtForMimetype(mimetype string) string {
+	return extByMimetype[mimetype]
 }
 
 func NewAttachmentSvc() *attachmentSvc {
@@ -67,19 +91,16 @@ func NewAttachmentSvc() *attachmentSvc {
 	}
 }
 
-func (s *attachmentSvc) GetDetail(ctx context.Context, id uint) response.SvcRes {
-	fmt.Printf("id %d \n", id)
-	attachment, err := s.repo.FindOne(ctx, "id = ?", id)
-	fmt.Printf("attachment %+v", attachment)
+// GetDetail returns an attachment uploaded by userID; another user's file is RECORD_NOT_FOUND.
+func (s *attachmentSvc) GetDetail(ctx context.Context, id uint, userID uint) response.SvcRes {
+	attachment, err := s.repo.FindOne(ctx, "id = ? AND created_by = ?", id, userID)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return response.SvcRespErr(i18n.RecordNotFound, http.StatusNotFound)
 		}
 
 		return response.SvcRespErr(err, http.StatusInternalServerError)
 	}
-
-	logger.Info("file", attachment)
 
 	return response.SvcRes{
 		Data: &dto.AttachmentRes{
@@ -101,7 +122,7 @@ func (s *attachmentSvc) GetDetail(ctx context.Context, id uint) response.SvcRes 
 
 func (s *attachmentSvc) UploadFile(ctx context.Context, file dto.FileData) response.SvcRes {
 	// 1. Upload file to s3
-	s3Res, err := utils.UploadFile(file.Path, file.Filename)
+	s3Res, err := utils.UploadFile(file.Path, file.Filename, file.Mimetype)
 	defer s.removeTempFile(file.Path)
 
 	if err != nil {
@@ -119,6 +140,7 @@ func (s *attachmentSvc) UploadFile(ctx context.Context, file dto.FileData) respo
 		Width:        file.Width,
 		Path:         s3Res.Path,
 	}
+	data.CreatedBy = file.UploadedBy
 	attachment, err := s.repo.Create(ctx, &data)
 	if err != nil {
 		return response.SvcRespErr(err, http.StatusInternalServerError)
@@ -140,11 +162,11 @@ func (s *attachmentSvc) UploadFile(ctx context.Context, file dto.FileData) respo
 	}
 }
 
-// MarkUsed marks an unused attachment as used by a record (e.g. a user's avatar). When types are
-// given, the attachment must be one of them. Errors: i18n.RecordNotFound, i18n.InvalidAttachmentType,
-// i18n.AttachmentInUse, or a database error.
-func (s *attachmentSvc) MarkUsed(ctx context.Context, id uint, types ...enums.AttachmentTypeEnum) error {
-	attachment, err := s.repo.FindOne(ctx, "id = ?", id)
+// MarkUsed marks an unused attachment uploaded by userID as used by a record (e.g. the user's avatar).
+// When types are given, the attachment must be one of them. Errors: i18n.RecordNotFound (also for
+// another user's file), i18n.InvalidAttachmentType, i18n.AttachmentInUse, or a database error.
+func (s *attachmentSvc) MarkUsed(ctx context.Context, id uint, userID uint, types ...enums.AttachmentTypeEnum) error {
+	attachment, err := s.repo.FindOne(ctx, "id = ? AND created_by = ?", id, userID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return i18n.RecordNotFound
@@ -160,7 +182,7 @@ func (s *attachmentSvc) MarkUsed(ctx context.Context, id uint, types ...enums.At
 		return i18n.Err(i18n.InvalidAttachmentType, i18n.Params{"types": strings.Join(names, ", ")})
 	}
 
-	marked, err := s.repo.MarkUsed(ctx, id, time.Now())
+	marked, err := s.repo.MarkUsed(ctx, id, userID, time.Now())
 	if err != nil {
 		return fmt.Errorf("mark attachment used: %w", err)
 	}

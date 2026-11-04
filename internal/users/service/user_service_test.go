@@ -62,7 +62,7 @@ type fakeAttachments struct {
 	deleted []uint
 }
 
-func (f *fakeAttachments) MarkUsed(_ context.Context, id uint, _ ...enums.AttachmentTypeEnum) error {
+func (f *fakeAttachments) MarkUsed(_ context.Context, id uint, _ uint, _ ...enums.AttachmentTypeEnum) error {
 	f.called = append(f.called, id)
 	return f.err
 }

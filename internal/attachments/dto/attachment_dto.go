@@ -8,8 +8,9 @@ type FileData struct {
 	Width        int16
 	Height       int16
 	OriginalName string
-	Mimetype     string
+	Mimetype     string // detected from the file's content, not the client's header
 	Path         string
+	UploadedBy   uint
 }
 
 type AttachmentRes struct {

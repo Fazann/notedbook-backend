@@ -26,7 +26,8 @@ type S3UploadRes struct {
 	Path string
 }
 
-func UploadFile(filePath string, fileName string) (*S3UploadRes, error) {
+// UploadFile uploads the file to S3 with the given Content-Type, so browsers treat it as that type.
+func UploadFile(filePath string, fileName string, contentType string) (*S3UploadRes, error) {
 	ctx := context.Background()
 	cfg, err := s3Config.LoadDefaultConfig(ctx, s3Config.WithRegion(config.S3Region), s3Config.WithCredentialsProvider(
 		aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
@@ -52,9 +53,10 @@ func UploadFile(filePath string, fileName string) (*S3UploadRes, error) {
 	key := fmt.Sprintf("%s/%s", config.S3ProjectName, halfPath)
 	_, err = tm.UploadObject(ctx,
 		&transfermanager.UploadObjectInput{
-			Bucket: &config.S3Bucket,
-			Key:    &key,
-			Body:   file,
+			Bucket:      &config.S3Bucket,
+			Key:         &key,
+			Body:        file,
+			ContentType: &contentType,
 		},
 		func(o *transfermanager.Options) {
 			o.PartSizeBytes = 10 * 1024 * 1024 // 10MB

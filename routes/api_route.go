@@ -69,9 +69,9 @@ func initAPIRoute(r *gin.Engine) {
 	userLimit := rl.LimitUser(int64(config.RateLimitUserReads), int64(config.RateLimitUserWrites), time.Minute)
 	signedIn := []gin.HandlerFunc{authRequired, ipLimit, userLimit}
 
-	attachments := api.Group("/attachments")
-	attachments.POST("", ipLimit, h.attachmentHandler.UploadFile)
-	attachments.GET("/:id", ipLimit, h.attachmentHandler.GetDetail)
+	attachments := api.Group("/attachments", signedIn...)
+	attachments.POST("", h.attachmentHandler.UploadFile)
+	attachments.GET("/:id", h.attachmentHandler.GetDetail)
 
 	auth := api.Group("/auth")
 	auth.POST("/register", rl.LimitIP(60, time.Minute), h.authHandler.Register)

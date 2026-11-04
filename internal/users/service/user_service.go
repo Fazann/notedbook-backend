@@ -28,7 +28,7 @@ type UserServiceImpl interface {
 // AttachmentUsage is the part of the attachment service this module uses. It is passed in by
 // routes, so users does not import the attachments module.
 type AttachmentUsage interface {
-	MarkUsed(ctx context.Context, id uint, types ...enums.AttachmentTypeEnum) error
+	MarkUsed(ctx context.Context, id uint, userID uint, types ...enums.AttachmentTypeEnum) error
 	Delete(ctx context.Context, id uint, deletedBy uint) error
 }
 
@@ -132,7 +132,7 @@ func (s *userSvc) UpdateProfile(ctx context.Context, userID uint, req *dto.Updat
 
 	// Claim the avatar last, so a rejected request does not leave the file marked as used.
 	if req.AvatarID != nil && (user.AvatarID == nil || *user.AvatarID != *req.AvatarID) {
-		if err := s.attachments.MarkUsed(ctx, *req.AvatarID, enums.AttachmentTypeImage); err != nil {
+		if err := s.attachments.MarkUsed(ctx, *req.AvatarID, userID, enums.AttachmentTypeImage); err != nil {
 			return response.SvcRespErr(err, avatarErrStatus(err))
 		}
 		updates["avatar_id"] = *req.AvatarID
