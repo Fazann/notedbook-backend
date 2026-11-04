@@ -8,7 +8,7 @@
 .air.toml
 tmp
 temp
-# Generated in the build stage.
+# Generated Swagger docs (local only; the image builds with -tags noswagger).
 docs
 *.md
 Dockerfile

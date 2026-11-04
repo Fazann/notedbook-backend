@@ -1,7 +1,6 @@
 # API image only: docker build -t notebook-api .
 # No BuildKit-only syntax (RUN --mount), so it also builds with the legacy builder (e.g. Cloud Build).
-# Swagger docs are generated in the build and the UI included by default; --build-arg SWAGGER=false leaves it out (~9 MB smaller).
-# The UI is served only when ENVIRONMENT != production.
+# Swagger is local-only: the image is always built with -tags noswagger, so docs/ is not needed here.
 
 # ---- build: static, stripped API binary ----
 FROM golang:1.26-alpine AS build
@@ -13,19 +12,11 @@ RUN go mod download
 
 COPY . .
 
-ARG SWAGGER=true
-# Same version as `make swagger`; docs/ is git-ignored, so it is generated here when needed.
-ARG SWAG_VERSION=v1.16.6
+# noswagger leaves out the Swagger UI and the generated docs/ package.
 # timetzdata embeds the zone database because the final image has none.
 ENV CGO_ENABLED=0 \
     GOFLAGS="-trimpath -buildvcs=false"
-RUN if [ "$SWAGGER" = "true" ]; then \
-        go run github.com/swaggo/swag/cmd/swag@${SWAG_VERSION} init -g cmd/app/main.go -o docs --outputTypes go && \
-        TAGS=timetzdata; \
-    else \
-        TAGS=timetzdata,noswagger; \
-    fi && \
-    go build -tags "$TAGS" -ldflags="-s -w" -o /out/app ./cmd/app
+RUN go build -tags timetzdata,noswagger -ldflags="-s -w" -o /out/app ./cmd/app
 
 # ---- runtime: empty image with CA certificates (S3, SMTP) and the binary ----
 FROM scratch

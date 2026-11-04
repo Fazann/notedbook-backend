@@ -27,7 +27,7 @@ make run
 ```
 
 The API is served at `http://localhost:<PORT>/api`, and Swagger UI at
-`http://localhost:<PORT>/docs/index.html` (not served when `ENVIRONMENT=production`, and left out of Docker images built with `SWAGGER=false`).
+`http://localhost:<PORT>/docs/index.html` (local only: not served when `ENVIRONMENT=production`, and never included in the Docker image).
 
 ## Makefile commands
 
@@ -38,8 +38,8 @@ The API is served at `http://localhost:<PORT>/api`, and Swagger UI at
 | `make seed` | Runs `cmd/seed`: inserts the 10 default expense categories (shared by every user, with en/km/ms names). Safe to run again; existing defaults are skipped. Run `make migrate` first. |
 | `make swagger` | Formats the Swagger annotations and generates `docs/` (`docs.go`, `swagger.json`, `swagger.yaml`) with swag v1.16.6. Run it after changing a handler annotation or a response DTO. |
 | `make locale` | Checks `pkg/i18n/locales/*.yml` (same keys and `{placeholders}` in every language) and generates the key constants in `pkg/i18n/keys_gen.go`. Run it after adding or renaming a translation key. |
-| `make build` | Builds the API image `notebook-api:latest` for `linux/amd64` from the multi-stage `Dockerfile` (~14 MB: one static binary on `scratch`). Swagger docs are generated in the build and the UI included; add `--build-arg SWAGGER=false` to leave it out. Pass config as env vars, e.g. `docker run --env-file .env -p 3010:3010 notebook-api`. |
-| `scripts/docker.sh <build\|run\|logs\|stop>` | Builds and runs the API image locally with `.env`. `run` starts the API in the background. Migrations and seeds are not in the image; run `make migrate` / `make seed`. `localhost` in `DB_HOST` / `REDIS_ADDR` is rewritten to `host.docker.internal`. Set `HOST_PORT=3011` when `make run` already uses the port, `SWAGGER=false` to leave out the Swagger UI. Run it without arguments for help. |
+| `make build` | Builds the API image `notebook-api:latest` for `linux/amd64` from the multi-stage `Dockerfile` (~14 MB: one static binary on `scratch`). The image is built with `-tags noswagger`, so it has no Swagger UI and does not need `docs/`. Pass config as env vars, e.g. `docker run --env-file .env -p 3010:3010 notebook-api`. |
+| `scripts/docker.sh <build\|run\|logs\|stop>` | Builds and runs the API image locally with `.env`. `run` starts the API in the background. Migrations and seeds are not in the image; run `make migrate` / `make seed`. `localhost` in `DB_HOST` / `REDIS_ADDR` is rewritten to `host.docker.internal`. Set `HOST_PORT=3011` when `make run` already uses the port. Run it without arguments for help. |
 | `make test-util` | Copies `.env.example` to `.env` if needed, then runs the tests in `./tests/util`. That folder does not exist yet; run all tests with `go test ./...`. |
 
 ## Folder structure
