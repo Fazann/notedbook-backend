@@ -34,6 +34,7 @@ func NewBudgetHandler() *BudgetHandler {
 //	@Param			Accept-Language	header		string	false	"Language of errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=[]dto.BudgetStatusRes}
 //	@Failure		400				{object}	response.ErrorRes	"VALIDATION_FAILED (month missing or not YYYY-MM)"
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/budgets [get]
 func (h *BudgetHandler) List(c *gin.Context) {
 	var req dto.BudgetListReq
@@ -62,6 +63,7 @@ func (h *BudgetHandler) List(c *gin.Context) {
 //	@Success		201				{object}	response.SuccessRes{data=dto.BudgetRes}
 //	@Failure		400				{object}	response.ErrorRes	"VALIDATION_FAILED, INVALID_CURRENCY or INVALID_AMOUNT"
 //	@Failure		409				{object}	response.ErrorRes	"BUDGET_EXISTS (this currency already has a budget)"
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/budgets [post]
 func (h *BudgetHandler) Create(c *gin.Context) {
 	var req dto.BudgetReq
@@ -92,6 +94,7 @@ func (h *BudgetHandler) Create(c *gin.Context) {
 //	@Failure		400				{object}	response.ErrorRes	"VALIDATION_FAILED, INVALID_ID, INVALID_CURRENCY or INVALID_AMOUNT"
 //	@Failure		404				{object}	response.ErrorRes	"RECORD_NOT_FOUND"
 //	@Failure		409				{object}	response.ErrorRes	"BUDGET_EXISTS (this currency already has a budget)"
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/budgets/{id} [put]
 func (h *BudgetHandler) Update(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
@@ -124,6 +127,7 @@ func (h *BudgetHandler) Update(c *gin.Context) {
 //	@Success		200				{object}	response.SuccessRes
 //	@Failure		400				{object}	response.ErrorRes	"INVALID_ID"
 //	@Failure		404				{object}	response.ErrorRes	"RECORD_NOT_FOUND"
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/budgets/{id} [delete]
 func (h *BudgetHandler) Delete(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))

@@ -29,6 +29,7 @@ func NewBoardHandler() *BoardHandler {
 //	@Security		BearerAuth
 //	@Param			Accept-Language	header		string	false	"Language of errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=[]dto.BoardListRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/boards [get]
 func (h *BoardHandler) List(c *gin.Context) {
 	res := h.boardSvc.List(c.Request.Context(), middleware.CurrentUserID(c))
@@ -53,6 +54,7 @@ func (h *BoardHandler) List(c *gin.Context) {
 //	@Param			Accept-Language	header		string	false	"Language of errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=[]dto.DueCardRes}
 //	@Failure		400				{object}	response.ErrorRes	"VALIDATION_FAILED (days out of range, today not YYYY-MM-DD)"
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/cards/due [get]
 func (h *BoardHandler) ListDueCards(c *gin.Context) {
 	var req dto.DueCardListReq

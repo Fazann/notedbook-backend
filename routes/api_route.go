@@ -55,12 +55,23 @@ func initAPIRoute(r *gin.Engine) {
 	api := r.Group("/api/v1")
 
 	h := newHandlers()
-	rl := middleware.NewRateLimiter(redis.Hit)
+	// Each block doubles the last one (1, 2, 4 ... min) up to RATE_LIMIT_MAX_BLOCK; see config for the env vars.
+	rl := middleware.NewRateLimiter(redis.HitBackoff(
+		time.Duration(config.RateLimitMaxBlock)*time.Minute,
+		time.Duration(config.RateLimitStrikesTTL)*time.Minute,
+	))
+	if !config.RateLimitEnabled {
+		rl = middleware.NewRateLimiter(nil)
+	}
 	authRequired := middleware.Auth([]byte(config.JwtSecret))
+	// Default limits per route, for routes without a stricter one of their own.
+	ipLimit := rl.LimitIP(int64(config.RateLimitIP), time.Minute)
+	userLimit := rl.LimitUser(int64(config.RateLimitUserReads), int64(config.RateLimitUserWrites), time.Minute)
+	signedIn := []gin.HandlerFunc{authRequired, ipLimit, userLimit}
 
 	attachments := api.Group("/attachments")
-	attachments.POST("", rl.LimitIP(100, time.Minute), h.attachmentHandler.UploadFile)
-	attachments.GET("/:id", h.attachmentHandler.GetDetail)
+	attachments.POST("", ipLimit, h.attachmentHandler.UploadFile)
+	attachments.GET("/:id", ipLimit, h.attachmentHandler.GetDetail)
 
 	auth := api.Group("/auth")
 	auth.POST("/register", rl.LimitIP(60, time.Minute), h.authHandler.Register)
@@ -69,11 +80,12 @@ func initAPIRoute(r *gin.Engine) {
 	auth.POST("/mail-otp/request", rl.LimitIP(60, time.Minute), h.authHandler.RequestMailOTP)
 	auth.POST("/mail-otp/verify", rl.LimitIP(60, time.Minute), h.authHandler.VerifyMailOTP)
 	auth.POST("/reset-password", rl.LimitIP(60, time.Minute), h.authHandler.ResetPassword)
-	auth.GET("/profile", authRequired, h.userHandler.GetProfile)
-	auth.PATCH("/profile", authRequired, h.userHandler.UpdateProfile)
+	profile := auth.Group("/profile", signedIn...)
+	profile.GET("", h.userHandler.GetProfile)
+	profile.PATCH("", h.userHandler.UpdateProfile)
 	auth.PUT("/change-password", authRequired, rl.LimitIP(60, time.Minute), h.userHandler.ChangePassword)
 
-	categories := api.Group("/categories", authRequired)
+	categories := api.Group("/categories", signedIn...)
 	categories.GET("", h.categoryHandler.List)
 	categories.GET("/all", h.categoryHandler.ListAll)
 	categories.GET("/:id", h.categoryHandler.GetDetail)
@@ -81,7 +93,7 @@ func initAPIRoute(r *gin.Engine) {
 	categories.PUT("/:id", h.categoryHandler.Update)
 	categories.DELETE("/:id", h.categoryHandler.Delete)
 
-	expenses := api.Group("/expenses", authRequired)
+	expenses := api.Group("/expenses", signedIn...)
 	expenses.GET("", h.expenseHandler.List)
 	expenses.GET("/summary", h.expenseHandler.Summary)
 	expenses.GET("/:id", h.expenseHandler.GetDetail)
@@ -89,21 +101,21 @@ func initAPIRoute(r *gin.Engine) {
 	expenses.PUT("/:id", h.expenseHandler.Update)
 	expenses.DELETE("/:id", h.expenseHandler.Delete)
 
-	budgets := api.Group("/budgets", authRequired)
+	budgets := api.Group("/budgets", signedIn...)
 	budgets.GET("", h.budgetHandler.List)
 	budgets.POST("", h.budgetHandler.Create)
 	budgets.PUT("/:id", h.budgetHandler.Update)
 	budgets.DELETE("/:id", h.budgetHandler.Delete)
 
-	currencySettings := api.Group("/currency-settings", authRequired)
+	currencySettings := api.Group("/currency-settings", signedIn...)
 	currencySettings.GET("", h.currencyHandler.Get)
 	currencySettings.PUT("", h.currencyHandler.Update)
 
 	planAreas := api.Group("/plan-areas", authRequired)
-	planAreas.GET("", h.planAreaHandler.List)
+	planAreas.GET("", ipLimit, userLimit, h.planAreaHandler.List)
 	planAreas.DELETE("/cache", rl.LimitIP(10, time.Minute), h.planAreaHandler.ResetCache)
 
-	plans := api.Group("/plans", authRequired)
+	plans := api.Group("/plans", signedIn...)
 	plans.GET("", h.planHandler.List)
 	plans.GET("/stats", h.planHandler.Stats)
 	plans.GET("/:id", h.planHandler.GetDetail)
@@ -113,13 +125,13 @@ func initAPIRoute(r *gin.Engine) {
 	plans.DELETE("/:id", h.planHandler.Delete)
 	plans.POST("/:id/steps", h.planStepHandler.Create)
 
-	steps := api.Group("/steps", authRequired)
+	steps := api.Group("/steps", signedIn...)
 	steps.PUT("/:id", h.planStepHandler.Update)
 	steps.PATCH("/:id/toggle", h.planStepHandler.Toggle)
 	steps.PATCH("/:id/move", h.planStepHandler.Move)
 	steps.DELETE("/:id", h.planStepHandler.Delete)
 
-	schedule := api.Group("/schedule", authRequired)
+	schedule := api.Group("/schedule", signedIn...)
 	schedule.GET("/occurrences", h.scheduleHandler.ListOccurrences)
 	schedule.GET("/summary", h.scheduleHandler.GetWeekSummary)
 	schedule.GET("/activities/:id", h.scheduleHandler.GetActivity)
@@ -127,11 +139,11 @@ func initAPIRoute(r *gin.Engine) {
 	schedule.PUT("/activities/:id", h.scheduleHandler.UpdateActivity)
 	schedule.DELETE("/activities/:id", h.scheduleHandler.DeleteActivity)
 
-	api.GET("/holidays", authRequired, h.holidayHandler.List)
+	api.Group("/holidays", signedIn...).GET("", h.holidayHandler.List)
 
-	boards := api.Group("/boards", authRequired)
+	boards := api.Group("/boards", signedIn...)
 	boards.GET("", h.boardHandler.List)
 
-	cards := api.Group("/cards", authRequired)
+	cards := api.Group("/cards", signedIn...)
 	cards.GET("/due", h.boardHandler.ListDueCards)
 }

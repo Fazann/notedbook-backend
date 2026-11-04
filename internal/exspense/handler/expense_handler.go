@@ -39,6 +39,7 @@ func NewExpenseHandler() *ExpenseHandler {
 //	@Param			sort			query		string	false	"Sort (\"-\" = descending)"	Enums(spent_at, -spent_at, amount, -amount)	default(-spent_at)
 //	@Param			Accept-Language	header		string	false	"Language of errors"		Enums(en, km, ms)
 //	@Success		200				{object}	response.Paginate{data=[]dto.ExpenseRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/expenses [get]
 func (h *ExpenseHandler) List(c *gin.Context) {
 	var req dto.ExpenseListReq
@@ -68,6 +69,7 @@ func (h *ExpenseHandler) List(c *gin.Context) {
 //	@Param			Accept-Language	header		string	false	"Language of errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.ExpenseSummaryRes}
 //	@Failure		400				{object}	response.ErrorRes	"VALIDATION_FAILED (month missing or not YYYY-MM)"
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/expenses/summary [get]
 func (h *ExpenseHandler) Summary(c *gin.Context) {
 	var req dto.ExpenseSummaryReq
@@ -95,6 +97,7 @@ func (h *ExpenseHandler) Summary(c *gin.Context) {
 //	@Param			id				path		int		true	"Expense ID"			minimum(1)
 //	@Param			Accept-Language	header		string	false	"Language of errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.ExpenseRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/expenses/{id} [get]
 func (h *ExpenseHandler) GetDetail(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
@@ -124,6 +127,7 @@ func (h *ExpenseHandler) GetDetail(c *gin.Context) {
 //	@Param			body			body		dto.ExpenseReq	true	"Expense"
 //	@Param			Accept-Language	header		string			false	"Language of errors"	Enums(en, km, ms)
 //	@Success		201				{object}	response.SuccessRes{data=dto.ExpenseRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/expenses [post]
 func (h *ExpenseHandler) Create(c *gin.Context) {
 	var req dto.ExpenseReq
@@ -153,6 +157,7 @@ func (h *ExpenseHandler) Create(c *gin.Context) {
 //	@Param			body			body		dto.ExpenseUpdateReq	true	"Fields to change"
 //	@Param			Accept-Language	header		string					false	"Language of errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.ExpenseRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/expenses/{id} [put]
 func (h *ExpenseHandler) Update(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
@@ -186,6 +191,7 @@ func (h *ExpenseHandler) Update(c *gin.Context) {
 //	@Param			id				path		int		true	"Expense ID"			minimum(1)
 //	@Param			Accept-Language	header		string	false	"Language of errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/expenses/{id} [delete]
 func (h *ExpenseHandler) Delete(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))

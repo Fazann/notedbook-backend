@@ -43,6 +43,12 @@ go test ./...   # must pass
 
 `make test-util` references `tests/util`, which does not exist yet. Do not rely on it; say so if a task needs it.
 `make build` builds the Docker image from the multi-stage `Dockerfile`; `.env` is never copied into it.
+Every API route is rate limited in `routes/api_route.go` (Redis, exponential block: 1, 2, 4 ... min, up to 1 h;
+numbers come from the `RATE_LIMIT_*` env vars). Use `c.ClientIP()` for the client IP: `middleware.RealIP` sets it
+from `X-Forwarded-For` by `TRUSTED_PROXY_HOPS`.
+Signed-in groups use `signedIn...` (auth + 100 req/min per IP + 60 reads / 20 writes a minute per user, per
+route); public routes use `ipLimit` or a stricter `rl.LimitIP`. New routes must use one of them, and their
+handlers need `@Failure 429`.
 The Swagger UI route lives in `routes/swagger.go`; `-tags noswagger` builds without it (the Docker image is always built this way; Swagger is local only).
 
 `make seed` runs only `cmd/seed/main.go` (`go run` on one file), so keep seed logic in the module

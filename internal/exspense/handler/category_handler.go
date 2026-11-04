@@ -36,6 +36,7 @@ func NewCategoryHandler() *CategoryHandler {
 //	@Param			sort			query		string	false	"Sort (\"-\" = descending)"		Enums(name, -name, created_at, -created_at, expense_count, -expense_count)	default(name)
 //	@Param			Accept-Language	header		string	false	"Language of names and errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.Paginate{data=[]dto.CategoryRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/categories [get]
 func (h *CategoryHandler) List(c *gin.Context) {
 	var req dto.CategoryListReq
@@ -62,6 +63,7 @@ func (h *CategoryHandler) List(c *gin.Context) {
 //	@Security		BearerAuth
 //	@Param			Accept-Language	header		string	false	"Language of names and errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=[]dto.CategoryRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/categories/all [get]
 func (h *CategoryHandler) ListAll(c *gin.Context) {
 	res := h.categorySvc.ListAll(c.Request.Context(), middleware.CurrentUserID(c), i18n.FromRequest(c.Request))
@@ -83,6 +85,7 @@ func (h *CategoryHandler) ListAll(c *gin.Context) {
 //	@Param			id				path		int		true	"Category ID"					minimum(1)
 //	@Param			Accept-Language	header		string	false	"Language of names and errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.CategoryRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/categories/{id} [get]
 func (h *CategoryHandler) GetDetail(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
@@ -112,6 +115,7 @@ func (h *CategoryHandler) GetDetail(c *gin.Context) {
 //	@Param			body			body		dto.CategoryReq	true	"Category"
 //	@Param			Accept-Language	header		string			false	"Language of names and errors"	Enums(en, km, ms)
 //	@Success		201				{object}	response.SuccessRes{data=dto.CategoryRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/categories [post]
 func (h *CategoryHandler) Create(c *gin.Context) {
 	var req dto.CategoryReq
@@ -142,6 +146,7 @@ func (h *CategoryHandler) Create(c *gin.Context) {
 //	@Param			body			body		dto.CategoryUpdateReq	true	"Fields to change"
 //	@Param			Accept-Language	header		string					false	"Language of names and errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.CategoryRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/categories/{id} [put]
 func (h *CategoryHandler) Update(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
@@ -181,6 +186,7 @@ func (h *CategoryHandler) Update(c *gin.Context) {
 //	@Failure		403				{object}	response.ErrorRes	"CATEGORY_IS_DEFAULT"
 //	@Failure		404				{object}	response.ErrorRes	"RECORD_NOT_FOUND"
 //	@Failure		409				{object}	response.ErrorRes	"CATEGORY_IN_USE (has expenses, no reassign_to)"
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/categories/{id} [delete]
 func (h *CategoryHandler) Delete(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))

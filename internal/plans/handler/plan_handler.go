@@ -39,6 +39,7 @@ func NewPlanHandler() *PlanHandler {
 //	@Param			Accept-Language	header		string	false	"Language of the area title and errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.Paginate{data=[]dto.PlanRes}
 //	@Failure		400				{object}	response.ErrorRes	"VALIDATION_FAILED, FIELD_INVALID (status or area_id)"
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/plans [get]
 func (h *PlanHandler) List(c *gin.Context) {
 	var req dto.PlanListReq
@@ -68,6 +69,7 @@ func (h *PlanHandler) List(c *gin.Context) {
 //	@Param			Accept-Language	header		string	false	"Language of errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.PlanStatsRes}
 //	@Failure		400				{object}	response.ErrorRes	"VALIDATION_FAILED (today not YYYY-MM-DD)"
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/plans/stats [get]
 func (h *PlanHandler) Stats(c *gin.Context) {
 	var req dto.PlanStatsReq
@@ -95,6 +97,7 @@ func (h *PlanHandler) Stats(c *gin.Context) {
 //	@Param			id				path		int		true	"Plan ID"								minimum(1)
 //	@Param			Accept-Language	header		string	false	"Language of the area title and errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.PlanDetailRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/plans/{id} [get]
 func (h *PlanHandler) GetDetail(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
@@ -123,6 +126,7 @@ func (h *PlanHandler) GetDetail(c *gin.Context) {
 //	@Param			body			body		dto.PlanReq	true	"Plan"
 //	@Param			Accept-Language	header		string		false	"Language of the area title and errors"	Enums(en, km, ms)
 //	@Success		201				{object}	response.SuccessRes{data=dto.PlanRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/plans [post]
 func (h *PlanHandler) Create(c *gin.Context) {
 	var req dto.PlanReq
@@ -152,6 +156,7 @@ func (h *PlanHandler) Create(c *gin.Context) {
 //	@Param			body			body		dto.PlanUpdateReq	true	"Fields to change"
 //	@Param			Accept-Language	header		string				false	"Language of the area title and errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.PlanDetailRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/plans/{id} [put]
 func (h *PlanHandler) Update(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
@@ -187,6 +192,7 @@ func (h *PlanHandler) Update(c *gin.Context) {
 //	@Param			body			body		dto.PlanStatusReq	true	"New status"
 //	@Param			Accept-Language	header		string				false	"Language of the area title and errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.PlanDetailRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/plans/{id}/status [patch]
 func (h *PlanHandler) UpdateStatus(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
@@ -220,6 +226,7 @@ func (h *PlanHandler) UpdateStatus(c *gin.Context) {
 //	@Param			id				path		int		true	"Plan ID"				minimum(1)
 //	@Param			Accept-Language	header		string	false	"Language of errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/plans/{id} [delete]
 func (h *PlanHandler) Delete(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))

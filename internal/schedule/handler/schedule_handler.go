@@ -33,6 +33,7 @@ func NewScheduleHandler() *ScheduleHandler {
 //	@Param			to				query		string	true	"End date (YYYY-MM-DD)"
 //	@Param			Accept-Language	header		string	false	"Language of errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=[]dto.OccurrenceRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/schedule/occurrences [get]
 func (h *ScheduleHandler) ListOccurrences(c *gin.Context) {
 	var req dto.OccurrenceListReq
@@ -61,6 +62,7 @@ func (h *ScheduleHandler) ListOccurrences(c *gin.Context) {
 //	@Param			to				query		string	true	"End date (YYYY-MM-DD)"
 //	@Param			Accept-Language	header		string	false	"Language of errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.WeekSummaryRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/schedule/summary [get]
 func (h *ScheduleHandler) GetWeekSummary(c *gin.Context) {
 	var req dto.OccurrenceListReq
@@ -88,6 +90,7 @@ func (h *ScheduleHandler) GetWeekSummary(c *gin.Context) {
 //	@Param			id				path		int		true	"Activity ID"			minimum(1)
 //	@Param			Accept-Language	header		string	false	"Language of errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.ScheduleActivityRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/schedule/activities/{id} [get]
 func (h *ScheduleHandler) GetActivity(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
@@ -116,6 +119,7 @@ func (h *ScheduleHandler) GetActivity(c *gin.Context) {
 //	@Param			body			body		dto.ScheduleActivityReq	true	"Activity"
 //	@Param			Accept-Language	header		string					false	"Language of errors"	Enums(en, km, ms)
 //	@Success		201				{object}	response.SuccessRes{data=dto.ScheduleActivityRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/schedule/activities [post]
 func (h *ScheduleHandler) CreateActivity(c *gin.Context) {
 	var req dto.ScheduleActivityReq
@@ -148,6 +152,7 @@ func (h *ScheduleHandler) CreateActivity(c *gin.Context) {
 //	@Param			body			body		dto.ScheduleActivityReq	true	"Activity"
 //	@Param			Accept-Language	header		string					false	"Language of errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.ScheduleActivityRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/schedule/activities/{id} [put]
 func (h *ScheduleHandler) UpdateActivity(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
@@ -189,6 +194,7 @@ func (h *ScheduleHandler) UpdateActivity(c *gin.Context) {
 //	@Param			date			query		string	false	"Occurrence date (YYYY-MM-DD); required when scope is this"
 //	@Param			Accept-Language	header		string	false	"Language of errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/schedule/activities/{id} [delete]
 func (h *ScheduleHandler) DeleteActivity(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))

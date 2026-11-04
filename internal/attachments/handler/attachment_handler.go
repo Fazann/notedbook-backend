@@ -41,6 +41,7 @@ func NewAttachmentHandler() *AttachmentHandler {
 //	@Success		200				{object}	response.SuccessRes{data=dto.AttachmentRes}
 //	@Failure		400				{object}	response.ErrorRes	"INVALID_ID"
 //	@Failure		404				{object}	response.ErrorRes	"RECORD_NOT_FOUND"
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Failure		500				{object}	response.ErrorRes	"INTERNAL_SERVER_ERROR"
 //	@Router			/v1/attachments/{id} [get]
 func (h *AttachmentHandler) GetDetail(c *gin.Context) {
@@ -72,6 +73,7 @@ func (h *AttachmentHandler) GetDetail(c *gin.Context) {
 //	@Success		201				{object}	response.SuccessRes{data=dto.AttachmentRes}
 //	@Failure		400				{object}	response.ErrorRes	"FILE_REQUIRED or BAD_REQUEST"
 //	@Failure		413				{object}	response.ErrorRes	"FILE_TOO_LARGE"
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Failure		500				{object}	response.ErrorRes	"INTERNAL_SERVER_ERROR"
 //	@Router			/v1/attachments [post]
 func (h *AttachmentHandler) UploadFile(c *gin.Context) {

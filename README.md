@@ -29,6 +29,18 @@ make run
 The API is served at `http://localhost:<PORT>/api`, and Swagger UI at
 `http://localhost:<PORT>/docs/index.html` (local only: not served when `ENVIRONMENT=production`, and never included in the Docker image).
 
+## Deploying to Cloud Run
+
+Build with `make build` and deploy the image. Cloud Run sets `PORT` itself; pass the rest of `.env` as env
+vars (secrets through Secret Manager). The client IP for rate limits and logs is the last `X-Forwarded-For`
+entry, which Cloud Run's front end adds; this is detected from `K_SERVICE`, so no setting is needed. Behind a
+Google external load balancer set `TRUSTED_PROXY_HOPS=2`. Rate limits are set with the `RATE_LIMIT_*` vars
+(see `.env.example`).
+
+The frontend (Vercel) calls the API from the browser, so set `CORS_ALLOWED_ORIGINS` to its domain(s), e.g.
+`https://notebook.vercel.app,https://notebook-*-myteam.vercel.app` for preview deploys too. Left empty, every
+origin is allowed (fine locally; the API logs a warning in production).
+
 ## Makefile commands
 
 | Command | What it does |

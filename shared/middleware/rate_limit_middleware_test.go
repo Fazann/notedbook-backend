@@ -93,3 +93,113 @@ func TestRateLimitKeyPerIP(t *testing.T) {
 		t.Fatalf("keys = %v, want one per IP", counts)
 	}
 }
+
+func serve(r *gin.Engine, method, path, ip string) int {
+	req := httptest.NewRequest(method, path, nil)
+	req.RemoteAddr = ip + ":1234"
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	return w.Code
+}
+
+func TestRateLimitKeyPerRoute(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	hit, _ := fakeHit(nil)
+	limit := NewRateLimiter(hit).LimitIP(1, time.Minute)
+	ok := func(c *gin.Context) { c.Status(http.StatusOK) }
+	r := gin.New()
+	r.GET("/a", limit, ok)
+	r.GET("/b/:id", limit, ok)
+	r.POST("/b/:id", limit, ok)
+
+	for _, req := range [][2]string{{http.MethodGet, "/a"}, {http.MethodGet, "/b/1"}, {http.MethodPost, "/b/1"}} {
+		if got := serve(r, req[0], req[1], "1.1.1.1"); got != http.StatusOK {
+			t.Fatalf("%s %s status = %d, want 200 (own counter per route)", req[0], req[1], got)
+		}
+	}
+	// Same pattern, another ID: shares the GET /b/:id counter.
+	if got := serve(r, http.MethodGet, "/b/2", "1.1.1.1"); got != http.StatusTooManyRequests {
+		t.Fatalf("GET /b/2 status = %d, want 429", got)
+	}
+}
+
+func TestLimitUser(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	tests := []struct {
+		name     string
+		method   string
+		userID   uint
+		requests int
+		want     int
+	}{
+		{name: "reads under read limit", method: http.MethodGet, userID: 1, requests: 3, want: http.StatusOK},
+		{name: "reads over read limit", method: http.MethodGet, userID: 1, requests: 4, want: http.StatusTooManyRequests},
+		{name: "writes under write limit", method: http.MethodPost, userID: 1, requests: 2, want: http.StatusOK},
+		{name: "writes over write limit", method: http.MethodPost, userID: 1, requests: 3, want: http.StatusTooManyRequests},
+		{name: "no user falls back to IP", method: http.MethodGet, requests: 4, want: http.StatusTooManyRequests},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			hit, counts := fakeHit(nil)
+			setUser := func(c *gin.Context) {
+				if tt.userID != 0 {
+					c.Set(ctxUserID, tt.userID)
+				}
+			}
+			r := gin.New()
+			r.Handle(tt.method, "/x", setUser, NewRateLimiter(hit).LimitUser(3, 2, time.Minute), func(c *gin.Context) { c.Status(http.StatusOK) })
+
+			var got int
+			for range tt.requests {
+				got = serve(r, tt.method, "/x", "1.1.1.1")
+			}
+			if got != tt.want {
+				t.Fatalf("status = %d, want %d", got, tt.want)
+			}
+
+			wantKey := "ratelimit:ip:1.1.1.1:" + tt.method + " /x"
+			if tt.userID != 0 {
+				wantKey = "ratelimit:user:1:" + tt.method + " /x"
+			}
+			if _, ok := counts[wantKey]; !ok || len(counts) != 1 {
+				t.Fatalf("keys = %v, want only %q", counts, wantKey)
+			}
+		})
+	}
+}
+
+func TestLimitUserKeyPerUser(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	hit, _ := fakeHit(nil)
+	limit := NewRateLimiter(hit).LimitUser(1, 1, time.Minute)
+	r := gin.New()
+	r.GET("/x", func(c *gin.Context) {
+		if c.Query("u") == "2" {
+			c.Set(ctxUserID, uint(2))
+		} else {
+			c.Set(ctxUserID, uint(1))
+		}
+	}, limit, func(c *gin.Context) { c.Status(http.StatusOK) })
+
+	// Same IP, different users: each has its own counter.
+	for _, path := range []string{"/x?u=1", "/x?u=2"} {
+		if got := serve(r, http.MethodGet, path, "1.1.1.1"); got != http.StatusOK {
+			t.Fatalf("%s status = %d, want 200", path, got)
+		}
+	}
+}
+
+func TestRateLimitDisabled(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	rl := NewRateLimiter(nil)
+	r := gin.New()
+	r.GET("/x", rl.LimitIP(1, time.Minute), rl.LimitUser(1, 1, time.Minute), func(c *gin.Context) { c.Status(http.StatusOK) })
+
+	for range 3 {
+		if got := serve(r, http.MethodGet, "/x", "1.1.1.1"); got != http.StatusOK {
+			t.Fatalf("status = %d, want 200 with rate limiting off", got)
+		}
+	}
+}

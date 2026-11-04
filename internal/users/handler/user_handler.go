@@ -29,6 +29,7 @@ func NewUserHandler(attachments service.AttachmentUsage) *UserHandler {
 //	@Security		BearerAuth
 //	@Param			Accept-Language	header		string	false	"Language of error messages"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.ProfileRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/auth/profile [get]
 func (h *UserHandler) GetProfile(c *gin.Context) {
 	res := h.userSvc.GetProfile(c.Request.Context(), middleware.CurrentUserID(c))
@@ -53,6 +54,7 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 //	@Param			body			body		dto.UpdateProfileReq	true	"Fields to change"
 //	@Param			Accept-Language	header		string					false	"Language of error messages"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.ProfileRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/auth/profile [patch]
 func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	var req dto.UpdateProfileReq
@@ -85,6 +87,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 //	@Failure		401				{object}	response.ErrorRes	"UNAUTHORIZED or TOKEN_EXPIRED"
 //	@Failure		403				{object}	response.ErrorRes	"ACCOUNT_DISABLED"
 //	@Failure		404				{object}	response.ErrorRes	"RECORD_NOT_FOUND"
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Failure		500				{object}	response.ErrorRes	"INTERNAL_SERVER_ERROR"
 //	@Router			/v1/auth/change-password [put]
 func (h *UserHandler) ChangePassword(c *gin.Context) {

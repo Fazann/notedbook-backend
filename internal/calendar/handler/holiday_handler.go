@@ -33,6 +33,7 @@ func NewHolidayHandler() *HolidayHandler {
 //	@Param			Accept-Language	header		string	false	"Language of errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=[]dto.HolidayRes}
 //	@Failure		400				{object}	response.ErrorRes	"VALIDATION_FAILED"
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/holidays [get]
 func (h *HolidayHandler) List(c *gin.Context) {
 	var req dto.HolidayListReq

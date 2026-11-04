@@ -26,6 +26,7 @@ func NewPlanAreaHandler() *PlanAreaHandler {
 //	@Security		BearerAuth
 //	@Param			Accept-Language	header		string	false	"Language of titles and errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=[]dto.PlanAreaRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/plan-areas [get]
 func (h *PlanAreaHandler) List(c *gin.Context) {
 	res := h.planAreaSvc.List(c.Request.Context(), i18n.FromRequest(c.Request))

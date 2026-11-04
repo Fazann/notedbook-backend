@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	"fmt"
 	"net"
@@ -56,6 +57,22 @@ var (
 
 	// Secret for the AES-GCM password reset key.
 	OtpSecret string
+
+	// Browser origins allowed to call the API (CORS_ALLOWED_ORIGINS, comma-separated, * patterns allowed).
+	// Empty allows every origin.
+	CorsAllowedOrigins []string
+
+	// Proxies in front of the API that append to X-Forwarded-For; the client IP is that many entries
+	// from the right. 0 uses the TCP peer address. Defaults to 1 on Cloud Run (K_SERVICE is set).
+	TrustedProxyHops int
+
+	// Rate limits per route, in requests a minute; blocks double each time up to RateLimitMaxBlock minutes.
+	RateLimitEnabled    = true
+	RateLimitIP         = 100
+	RateLimitUserReads  = 60
+	RateLimitUserWrites = 20
+	RateLimitMaxBlock   = 60   // minutes
+	RateLimitStrikesTTL = 1440 // minutes without a block before the doubling resets
 )
 
 func init() {
@@ -133,6 +150,33 @@ func init() {
 	SmtpFromName = getEnvDefault("SMTP_FROM_NAME", "Notebook")
 
 	OtpSecret = os.Getenv("OTP_SECRET")
+
+	for _, o := range strings.Split(os.Getenv("CORS_ALLOWED_ORIGINS"), ",") {
+		if o = strings.TrimSuffix(strings.TrimSpace(o), "/"); o != "" {
+			CorsAllowedOrigins = append(CorsAllowedOrigins, o)
+		}
+	}
+	if len(CorsAllowedOrigins) == 0 && Environment == "production" {
+		log.Println("warning: CORS_ALLOWED_ORIGINS is empty, so every origin may call the API")
+	}
+
+	defaultHops := 0
+	if os.Getenv("K_SERVICE") != "" {
+		defaultHops = 1
+	}
+	TrustedProxyHops = getEnvInt("TRUSTED_PROXY_HOPS", defaultHops)
+
+	RateLimitEnabled = getEnvBool("RATE_LIMIT_ENABLED", RateLimitEnabled)
+	RateLimitIP = getEnvInt("RATE_LIMIT_IP", RateLimitIP)
+	RateLimitUserReads = getEnvInt("RATE_LIMIT_USER_READS", RateLimitUserReads)
+	RateLimitUserWrites = getEnvInt("RATE_LIMIT_USER_WRITES", RateLimitUserWrites)
+	RateLimitMaxBlock = getEnvInt("RATE_LIMIT_MAX_BLOCK", RateLimitMaxBlock)
+	RateLimitStrikesTTL = getEnvInt("RATE_LIMIT_STRIKES_TTL", RateLimitStrikesTTL)
+
+	if TrustedProxyHops < 0 || RateLimitIP <= 0 || RateLimitUserReads <= 0 || RateLimitUserWrites <= 0 ||
+		RateLimitMaxBlock <= 0 || RateLimitStrikesTTL <= 0 {
+		log.Fatal("TRUSTED_PROXY_HOPS must be 0 or more and RATE_LIMIT_* values must be positive")
+	}
 }
 
 func getEnvDefault(key, def string) string {
@@ -140,6 +184,18 @@ func getEnvDefault(key, def string) string {
 		return v
 	}
 	return def
+}
+
+func getEnvBool(key string, def bool) bool {
+	v := os.Getenv(key)
+	if v == "" {
+		return def
+	}
+	b, err := strconv.ParseBool(v)
+	if err != nil {
+		log.Fatalf("Error converting %s to bool", key)
+	}
+	return b
 }
 
 func getEnvInt(key string, def int) int {

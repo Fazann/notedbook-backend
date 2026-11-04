@@ -34,6 +34,7 @@ func NewPlanStepHandler() *PlanStepHandler {
 //	@Param			body			body		dto.PlanStepReq	true	"Step"
 //	@Param			Accept-Language	header		string			false	"Language of errors"	Enums(en, km, ms)
 //	@Success		201				{object}	response.SuccessRes{data=dto.PlanStepRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/plans/{id}/steps [post]
 func (h *PlanStepHandler) Create(c *gin.Context) {
 	planID, _ := strconv.Atoi(c.Param("id"))
@@ -69,6 +70,7 @@ func (h *PlanStepHandler) Create(c *gin.Context) {
 //	@Param			body			body		dto.PlanStepUpdateReq	true	"Fields to change"
 //	@Param			Accept-Language	header		string					false	"Language of errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.PlanStepRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/steps/{id} [put]
 func (h *PlanStepHandler) Update(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
@@ -105,6 +107,7 @@ func (h *PlanStepHandler) Update(c *gin.Context) {
 //	@Param			body			body		dto.PlanStepToggleReq	true	"Done state"
 //	@Param			Accept-Language	header		string					false	"Language of the area title and errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.PlanStepToggleRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/steps/{id}/toggle [patch]
 func (h *PlanStepHandler) Toggle(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
@@ -143,6 +146,7 @@ func (h *PlanStepHandler) Toggle(c *gin.Context) {
 //	@Success		200				{object}	response.SuccessRes{data=dto.PlanStepRes}
 //	@Failure		400				{object}	response.ErrorRes	"VALIDATION_FAILED, INVALID_ID"
 //	@Failure		404				{object}	response.ErrorRes	"RECORD_NOT_FOUND"
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/steps/{id}/move [patch]
 func (h *PlanStepHandler) Move(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
@@ -176,6 +180,7 @@ func (h *PlanStepHandler) Move(c *gin.Context) {
 //	@Param			id				path		int		true	"Step ID"								minimum(1)
 //	@Param			Accept-Language	header		string	false	"Language of the area title and errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.PlanStepDeleteRes}
+//	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/steps/{id} [delete]
 func (h *PlanStepHandler) Delete(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
