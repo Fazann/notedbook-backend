@@ -19,6 +19,7 @@ TOO_MANY_REQUESTS: "Too many requests. Please try again in {seconds} seconds."
 # Attachments
 FILE_REQUIRED: "A file is required. Please select a file to upload."
 FILE_TOO_LARGE: "The file exceeds the maximum allowed size of {max}."
+REQUEST_TOO_LARGE: "The request is too large. The maximum size is {max}."
 ATTACHMENT_IN_USE: "This file is already used elsewhere. Please upload a new one."
 INVALID_ATTACHMENT_TYPE: "The file type is not allowed. Allowed types: {types}."
 

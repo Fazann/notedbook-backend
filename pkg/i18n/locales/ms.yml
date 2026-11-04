@@ -16,6 +16,7 @@ TOO_MANY_REQUESTS: "Terlalu banyak permintaan. Sila cuba lagi dalam {seconds} sa
 # Attachments
 FILE_REQUIRED: "Fail diperlukan. Sila pilih fail untuk dimuat naik."
 FILE_TOO_LARGE: "Saiz fail melebihi had maksimum yang dibenarkan iaitu {max}."
+REQUEST_TOO_LARGE: "Permintaan terlalu besar. Saiz maksimum ialah {max}."
 ATTACHMENT_IN_USE: "Fail ini telah digunakan di tempat lain. Sila muat naik fail baharu."
 INVALID_ATTACHMENT_TYPE: "Jenis fail tidak dibenarkan. Jenis yang dibenarkan: {types}."
 

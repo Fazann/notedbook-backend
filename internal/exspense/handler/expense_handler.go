@@ -127,6 +127,7 @@ func (h *ExpenseHandler) GetDetail(c *gin.Context) {
 //	@Param			body			body		dto.ExpenseReq	true	"Expense"
 //	@Param			Accept-Language	header		string			false	"Language of errors"	Enums(en, km, ms)
 //	@Success		201				{object}	response.SuccessRes{data=dto.ExpenseRes}
+//	@Failure		413				{object}	response.ErrorRes	"REQUEST_TOO_LARGE"
 //	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/expenses [post]
 func (h *ExpenseHandler) Create(c *gin.Context) {
@@ -157,6 +158,7 @@ func (h *ExpenseHandler) Create(c *gin.Context) {
 //	@Param			body			body		dto.ExpenseUpdateReq	true	"Fields to change"
 //	@Param			Accept-Language	header		string					false	"Language of errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.ExpenseRes}
+//	@Failure		413				{object}	response.ErrorRes	"REQUEST_TOO_LARGE"
 //	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/expenses/{id} [put]
 func (h *ExpenseHandler) Update(c *gin.Context) {

@@ -119,6 +119,7 @@ func (h *ScheduleHandler) GetActivity(c *gin.Context) {
 //	@Param			body			body		dto.ScheduleActivityReq	true	"Activity"
 //	@Param			Accept-Language	header		string					false	"Language of errors"	Enums(en, km, ms)
 //	@Success		201				{object}	response.SuccessRes{data=dto.ScheduleActivityRes}
+//	@Failure		413				{object}	response.ErrorRes	"REQUEST_TOO_LARGE"
 //	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/schedule/activities [post]
 func (h *ScheduleHandler) CreateActivity(c *gin.Context) {
@@ -152,6 +153,7 @@ func (h *ScheduleHandler) CreateActivity(c *gin.Context) {
 //	@Param			body			body		dto.ScheduleActivityReq	true	"Activity"
 //	@Param			Accept-Language	header		string					false	"Language of errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.ScheduleActivityRes}
+//	@Failure		413				{object}	response.ErrorRes	"REQUEST_TOO_LARGE"
 //	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/schedule/activities/{id} [put]
 func (h *ScheduleHandler) UpdateActivity(c *gin.Context) {

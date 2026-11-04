@@ -126,6 +126,7 @@ func (h *PlanHandler) GetDetail(c *gin.Context) {
 //	@Param			body			body		dto.PlanReq	true	"Plan"
 //	@Param			Accept-Language	header		string		false	"Language of the area title and errors"	Enums(en, km, ms)
 //	@Success		201				{object}	response.SuccessRes{data=dto.PlanRes}
+//	@Failure		413				{object}	response.ErrorRes	"REQUEST_TOO_LARGE"
 //	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/plans [post]
 func (h *PlanHandler) Create(c *gin.Context) {
@@ -156,6 +157,7 @@ func (h *PlanHandler) Create(c *gin.Context) {
 //	@Param			body			body		dto.PlanUpdateReq	true	"Fields to change"
 //	@Param			Accept-Language	header		string				false	"Language of the area title and errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.PlanDetailRes}
+//	@Failure		413				{object}	response.ErrorRes	"REQUEST_TOO_LARGE"
 //	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/plans/{id} [put]
 func (h *PlanHandler) Update(c *gin.Context) {
@@ -192,6 +194,7 @@ func (h *PlanHandler) Update(c *gin.Context) {
 //	@Param			body			body		dto.PlanStatusReq	true	"New status"
 //	@Param			Accept-Language	header		string				false	"Language of the area title and errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.PlanDetailRes}
+//	@Failure		413				{object}	response.ErrorRes	"REQUEST_TOO_LARGE"
 //	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/plans/{id}/status [patch]
 func (h *PlanHandler) UpdateStatus(c *gin.Context) {

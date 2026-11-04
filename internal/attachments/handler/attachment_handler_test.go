@@ -16,6 +16,7 @@ import (
 	"github.com/Fazann/notedbook-backend/pkg/enums"
 	"github.com/Fazann/notedbook-backend/pkg/i18n"
 	"github.com/Fazann/notedbook-backend/pkg/response"
+	"github.com/Fazann/notedbook-backend/shared/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -132,5 +133,27 @@ func TestGetDetailPassesUser(t *testing.T) {
 	}
 	if svc.detailFor != [2]uint{3, 7} {
 		t.Fatalf("GetDetail(id, user) = %v, want [3 7]", svc.detailFor)
+	}
+}
+
+// Uploads raise the 1 MB JSON body limit for themselves.
+func TestUploadAboveJSONBodyLimit(t *testing.T) {
+	t.Cleanup(func() { os.RemoveAll("tmp") })
+	gin.SetMode(gin.TestMode)
+	svc := &fakeAttachmentSvc{}
+	h := &AttachmentHandler{attachmentSvc: svc}
+	r := gin.New()
+	r.Use(middleware.BodyLimit(1 << 20))
+	r.POST("/attachments", func(c *gin.Context) { c.Set("auth_user_id", uint(7)) }, h.UploadFile)
+
+	big := append(append([]byte{}, pngBytes...), make([]byte, 2<<20)...)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, uploadReq(t, "big.png", "image/png", big))
+
+	if w.Code != http.StatusCreated {
+		t.Fatalf("status = %d, want 201 (%s)", w.Code, w.Body.String())
+	}
+	if svc.uploaded == nil || svc.uploaded.Size != int64(len(big)) {
+		t.Fatalf("uploaded = %+v, want size %d", svc.uploaded, len(big))
 	}
 }

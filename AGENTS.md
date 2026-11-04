@@ -43,6 +43,10 @@ go test ./...   # must pass
 
 `make test-util` references `tests/util`, which does not exist yet. Do not rely on it; say so if a task needs it.
 `make build` builds the Docker image from the multi-stage `Dockerfile`; `.env` is never copied into it.
+The server (`pkg/server`) has read / write timeouts and shuts down gracefully on SIGTERM. Request bodies are
+capped at 1 MB (`middleware.BodyLimit`); a bigger body is answered 413 `REQUEST_TOO_LARGE` by `response.JsonErrRes`
+(handlers with a JSON body need `@Failure 413`). A route that takes more (uploads) calls `middleware.SetBodyLimit`,
+and extends its deadlines with `http.ResponseController` if it needs longer than 30 s.
 Every API route is rate limited in `routes/api_route.go` (Redis, exponential block: 1, 2, 4 ... min, up to 1 h;
 numbers come from the `RATE_LIMIT_*` env vars). Use `c.ClientIP()` for the client IP: `middleware.RealIP` sets it
 from `X-Forwarded-For` by `TRUSTED_PROXY_HOPS`.

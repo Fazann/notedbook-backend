@@ -115,6 +115,7 @@ func (h *CategoryHandler) GetDetail(c *gin.Context) {
 //	@Param			body			body		dto.CategoryReq	true	"Category"
 //	@Param			Accept-Language	header		string			false	"Language of names and errors"	Enums(en, km, ms)
 //	@Success		201				{object}	response.SuccessRes{data=dto.CategoryRes}
+//	@Failure		413				{object}	response.ErrorRes	"REQUEST_TOO_LARGE"
 //	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/categories [post]
 func (h *CategoryHandler) Create(c *gin.Context) {
@@ -146,6 +147,7 @@ func (h *CategoryHandler) Create(c *gin.Context) {
 //	@Param			body			body		dto.CategoryUpdateReq	true	"Fields to change"
 //	@Param			Accept-Language	header		string					false	"Language of names and errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.CategoryRes}
+//	@Failure		413				{object}	response.ErrorRes	"REQUEST_TOO_LARGE"
 //	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/categories/{id} [put]
 func (h *CategoryHandler) Update(c *gin.Context) {

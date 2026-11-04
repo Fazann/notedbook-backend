@@ -1,6 +1,8 @@
 package response
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/Fazann/notedbook-backend/pkg/i18n"
@@ -52,6 +54,13 @@ type Paginate struct {
 // A binding error (c.ShouldBindJSON etc.) with a 400 status is answered with VALIDATION_FAILED
 // and one entry per invalid field; the message is the first field's message.
 func JsonErrRes(c *gin.Context, err error, statusCode int) {
+	// A body over the limit (middleware.BodyLimit) shows up as a bind or parse error; answer 413.
+	var tooLarge *http.MaxBytesError
+	if errors.As(err, &tooLarge) {
+		err = i18n.Err(i18n.RequestTooLarge, i18n.Params{"max": formatBytes(tooLarge.Limit)})
+		statusCode = http.StatusRequestEntityTooLarge
+	}
+
 	lang := i18n.FromRequest(c.Request)
 	c.Header("Content-Language", string(lang))
 
@@ -110,4 +119,16 @@ func JsonSuccessResWithPage(c *gin.Context, res SvcResWithPaginate) {
 		StatusCode: res.StatusCode,
 		TotalPage:  res.TotalPage,
 	})
+}
+
+// formatBytes writes a size limit for people: "1 MB", "512 KB" or "100 B".
+func formatBytes(n int64) string {
+	switch {
+	case n >= 1<<20 && n%(1<<20) == 0:
+		return fmt.Sprintf("%d MB", n>>20)
+	case n >= 1<<10 && n%(1<<10) == 0:
+		return fmt.Sprintf("%d KB", n>>10)
+	default:
+		return fmt.Sprintf("%d B", n)
+	}
 }

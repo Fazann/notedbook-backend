@@ -54,6 +54,7 @@ func (h *CurrencySettingHandler) Get(c *gin.Context) {
 //	@Param			Accept-Language	header		string					false	"Language of errors"	Enums(en, km, ms)
 //	@Success		200				{object}	response.SuccessRes{data=dto.CurrencySettingRes}
 //	@Failure		400				{object}	response.ErrorRes	"VALIDATION_FAILED, INVALID_CURRENCY, NO_CURRENCY_ENABLED or DEFAULT_CURRENCY_NOT_ENABLED"
+//	@Failure		413				{object}	response.ErrorRes	"REQUEST_TOO_LARGE"
 //	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/currency-settings [put]
 func (h *CurrencySettingHandler) Update(c *gin.Context) {

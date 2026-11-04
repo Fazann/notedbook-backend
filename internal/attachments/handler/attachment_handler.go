@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -12,6 +13,7 @@ import (
 	"github.com/Fazann/notedbook-backend/internal/attachments/dto"
 	"github.com/Fazann/notedbook-backend/internal/attachments/service"
 	"github.com/Fazann/notedbook-backend/pkg/i18n"
+	"github.com/Fazann/notedbook-backend/pkg/logger"
 	"github.com/Fazann/notedbook-backend/pkg/response"
 	"github.com/Fazann/notedbook-backend/pkg/utils"
 	"github.com/Fazann/notedbook-backend/shared/middleware"
@@ -24,6 +26,7 @@ type AttachmentHandler struct {
 
 const (
 	MaxUploadSize = 100 << 20 // 100 MB
+	uploadTimeout = 10 * time.Minute
 )
 
 func NewAttachmentHandler() *AttachmentHandler {
@@ -84,8 +87,10 @@ func (h *AttachmentHandler) GetDetail(c *gin.Context) {
 //	@Failure		500				{object}	response.ErrorRes	"INTERNAL_SERVER_ERROR"
 //	@Router			/v1/attachments [post]
 func (h *AttachmentHandler) UploadFile(c *gin.Context) {
-	// Wrap the body reader so only MaxUploadSize bytes are allowed
-	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, MaxUploadSize)
+	// Uploads may be up to MaxUploadSize instead of the default JSON limit, and a large file on a
+	// slow connection needs longer than the server's 30 s read / write timeouts.
+	middleware.SetBodyLimit(c, MaxUploadSize)
+	extendDeadlines(c, uploadTimeout)
 	// Parse multipart form; parts over 10 MB go to a temp file instead of memory
 	if err := c.Request.ParseMultipartForm(10 << 20); err != nil {
 		if _, ok := err.(*http.MaxBytesError); ok {
@@ -158,4 +163,16 @@ func detectMimetype(file *multipart.FileHeader) (string, error) {
 		return "", err
 	}
 	return http.DetectContentType(head[:n]), nil
+}
+
+// extendDeadlines gives this request longer than the server's read and write timeouts.
+func extendDeadlines(c *gin.Context, d time.Duration) {
+	rc := http.NewResponseController(c.Writer)
+	deadline := time.Now().Add(d)
+	for _, err := range []error{rc.SetReadDeadline(deadline), rc.SetWriteDeadline(deadline)} {
+		// ErrNotSupported only in tests (httptest.ResponseRecorder); a real connection supports it.
+		if err != nil && !errors.Is(err, http.ErrNotSupported) {
+			logger.Warn("extend upload deadline failed", "err", err)
+		}
+	}
 }

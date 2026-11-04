@@ -63,6 +63,7 @@ func (h *BudgetHandler) List(c *gin.Context) {
 //	@Success		201				{object}	response.SuccessRes{data=dto.BudgetRes}
 //	@Failure		400				{object}	response.ErrorRes	"VALIDATION_FAILED, INVALID_CURRENCY or INVALID_AMOUNT"
 //	@Failure		409				{object}	response.ErrorRes	"BUDGET_EXISTS (this currency already has a budget)"
+//	@Failure		413				{object}	response.ErrorRes	"REQUEST_TOO_LARGE"
 //	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/budgets [post]
 func (h *BudgetHandler) Create(c *gin.Context) {
@@ -94,6 +95,7 @@ func (h *BudgetHandler) Create(c *gin.Context) {
 //	@Failure		400				{object}	response.ErrorRes	"VALIDATION_FAILED, INVALID_ID, INVALID_CURRENCY or INVALID_AMOUNT"
 //	@Failure		404				{object}	response.ErrorRes	"RECORD_NOT_FOUND"
 //	@Failure		409				{object}	response.ErrorRes	"BUDGET_EXISTS (this currency already has a budget)"
+//	@Failure		413				{object}	response.ErrorRes	"REQUEST_TOO_LARGE"
 //	@Failure		429				{object}	response.ErrorRes	"TOO_MANY_REQUESTS"
 //	@Router			/v1/budgets/{id} [put]
 func (h *BudgetHandler) Update(c *gin.Context) {

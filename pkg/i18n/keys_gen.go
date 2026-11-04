@@ -27,6 +27,8 @@ const (
 	FileRequired Key = "FILE_REQUIRED"
 	// The file exceeds the maximum allowed size of {max}.
 	FileTooLarge Key = "FILE_TOO_LARGE"
+	// The request is too large. The maximum size is {max}.
+	RequestTooLarge Key = "REQUEST_TOO_LARGE"
 	// This file is already used elsewhere. Please upload a new one.
 	AttachmentInUse Key = "ATTACHMENT_IN_USE"
 	// The file type is not allowed. Allowed types: {types}.
@@ -137,6 +139,7 @@ var AllKeys = []Key{
 	TooManyRequests,
 	FileRequired,
 	FileTooLarge,
+	RequestTooLarge,
 	AttachmentInUse,
 	InvalidAttachmentType,
 	InvalidFullname,

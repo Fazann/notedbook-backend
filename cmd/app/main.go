@@ -1,10 +1,16 @@
 package main
 
 import (
+	"context"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/Fazann/notedbook-backend/config"
 	"github.com/Fazann/notedbook-backend/pkg/db"
 	"github.com/Fazann/notedbook-backend/pkg/logger"
 	"github.com/Fazann/notedbook-backend/pkg/redis"
+	"github.com/Fazann/notedbook-backend/pkg/server"
 	"github.com/Fazann/notedbook-backend/pkg/validation"
 	"github.com/Fazann/notedbook-backend/routes"
 	"github.com/gin-gonic/gin"
@@ -37,8 +43,21 @@ func main() {
 	// Init api router
 	routes.InitRouter(r)
 
+	// Stop on Ctrl+C locally and on SIGTERM from Cloud Run / Docker.
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
 	logger.Info("application starting", "port", config.Port)
-	if err := r.Run(":" + config.Port); err != nil {
-		logger.Fatal("application start failed", "err", err)
+	if err := server.Run(ctx, server.New(":"+config.Port, r)); err != nil {
+		logger.Fatal("server stopped", "err", err)
 	}
+
+	// Requests are done; release the pools.
+	if err := db.Close(); err != nil {
+		logger.Error("close database", "err", err)
+	}
+	if err := redis.RedisClient.Close(); err != nil {
+		logger.Error("close redis", "err", err)
+	}
+	logger.Info("application stopped")
 }
