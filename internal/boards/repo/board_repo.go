@@ -34,6 +34,36 @@ type BoardRepoImpl interface {
 	baserepo.BaseRepo[model.Board]
 	ListWithCardCount(ctx context.Context, userID uint) ([]BoardSummary, error)
 	FindDueCards(ctx context.Context, userID uint, until time.Time) ([]DueCard, error)
+
+	// Transaction runs fn with a repo bound to one database transaction.
+	Transaction(ctx context.Context, fn func(r BoardRepoImpl) error) error
+
+	// FindOwnBoard returns the user's board (gorm.ErrRecordNotFound for another user's).
+	FindOwnBoard(ctx context.Context, userID, id uint) (*model.Board, error)
+	// FindBoardDetail returns the user's board with its columns and cards, each sorted by position.
+	FindBoardDetail(ctx context.Context, userID, id uint) (*model.Board, error)
+	CreateBoard(ctx context.Context, board *model.Board) error
+	UpdateBoardName(ctx context.Context, id uint, name string) error
+	// DeleteBoard soft-deletes the board with its columns and their cards.
+	DeleteBoard(ctx context.Context, id uint) error
+
+	// FindOwnColumn returns a column of one of the user's boards.
+	FindOwnColumn(ctx context.Context, userID, id uint) (*model.BoardColumn, error)
+	// LastColumnPosition is the highest column position on the board, or 0 when it has none.
+	LastColumnPosition(ctx context.Context, boardID uint) (float64, error)
+	CreateColumn(ctx context.Context, column *model.BoardColumn) error
+	UpdateColumnName(ctx context.Context, id uint, name string) error
+	// DeleteColumn soft-deletes the column with its cards.
+	DeleteColumn(ctx context.Context, id uint) error
+
+	// FindOwnCard returns a card on one of the user's boards, and the board it is on.
+	FindOwnCard(ctx context.Context, userID, id uint) (*model.BoardCard, uint, error)
+	FindCard(ctx context.Context, id uint) (*model.BoardCard, error)
+	// LastCardPosition is the highest card position in the column, or 0 when it is empty.
+	LastCardPosition(ctx context.Context, columnID uint) (float64, error)
+	CreateCard(ctx context.Context, card *model.BoardCard) error
+	UpdateCard(ctx context.Context, id uint, updates map[string]any) error
+	DeleteCard(ctx context.Context, id uint) error
 }
 
 type boardRepo struct {

@@ -20,6 +20,20 @@ const (
 type BoardServiceImpl interface {
 	List(ctx context.Context, userID uint) response.SvcRes
 	ListDueCards(ctx context.Context, userID uint, req *dto.DueCardListReq) response.SvcRes
+
+	Get(ctx context.Context, userID, id uint) response.SvcRes
+	Create(ctx context.Context, userID uint, req *dto.BoardReq) response.SvcRes
+	Update(ctx context.Context, userID, id uint, req *dto.BoardUpdateReq) response.SvcRes
+	Delete(ctx context.Context, userID, id uint) response.SvcRes
+
+	CreateColumn(ctx context.Context, userID, boardID uint, req *dto.ColumnReq) response.SvcRes
+	UpdateColumn(ctx context.Context, userID, id uint, req *dto.ColumnReq) response.SvcRes
+	DeleteColumn(ctx context.Context, userID, id uint) response.SvcRes
+
+	CreateCard(ctx context.Context, userID, columnID uint, req *dto.CardReq) response.SvcRes
+	UpdateCard(ctx context.Context, userID, id uint, req *dto.CardReq) response.SvcRes
+	MoveCard(ctx context.Context, userID, id uint, req *dto.CardMoveReq) response.SvcRes
+	DeleteCard(ctx context.Context, userID, id uint) response.SvcRes
 }
 
 type boardSvc struct {

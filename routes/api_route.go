@@ -147,7 +147,20 @@ func initAPIRoute(r *gin.Engine) {
 
 	boards := api.Group("/boards", signedIn...)
 	boards.GET("", h.boardHandler.List)
+	boards.GET("/:id", h.boardHandler.Get)
+	boards.POST("", h.boardHandler.Create)
+	boards.PUT("/:id", h.boardHandler.Update)
+	boards.DELETE("/:id", h.boardHandler.Delete)
+	boards.POST("/:id/columns", h.boardHandler.CreateColumn)
+
+	columns := api.Group("/columns", signedIn...)
+	columns.PUT("/:id", h.boardHandler.UpdateColumn)
+	columns.DELETE("/:id", h.boardHandler.DeleteColumn)
+	columns.POST("/:id/cards", h.boardHandler.CreateCard)
 
 	cards := api.Group("/cards", signedIn...)
 	cards.GET("/due", h.boardHandler.ListDueCards)
+	cards.PUT("/:id", h.boardHandler.UpdateCard)
+	cards.PATCH("/:id/move", h.boardHandler.MoveCard)
+	cards.DELETE("/:id", h.boardHandler.DeleteCard)
 }
