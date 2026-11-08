@@ -37,6 +37,10 @@ entry, which Cloud Run's front end adds; this is detected from `K_SERVICE`, so n
 Google external load balancer set `TRUSTED_PROXY_HOPS=2`. Rate limits are set with the `RATE_LIMIT_*` vars
 (see `.env.example`).
 
+Exchange rates (`GET /api/v1/exchange-rates`) come from `EXCHANGE_RATE_API_URL` (default: the free, keyless
+ExchangeRate-API endpoint `https://open.er-api.com/v6/latest/USD`, updated daily). They are cached in Redis until
+the source's next update and never stored in the database; the cloud egress must allow that host.
+
 The frontend (Vercel) calls the API from the browser, so set `CORS_ALLOWED_ORIGINS` to its domain(s), e.g.
 `https://notebook.vercel.app,https://notebook-*-myteam.vercel.app` for preview deploys too. Left empty, every
 origin is allowed (fine locally; the API logs a warning in production).

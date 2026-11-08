@@ -73,6 +73,9 @@ var (
 	RateLimitUserWrites = 20
 	RateLimitMaxBlock   = 60   // minutes
 	RateLimitStrikesTTL = 1440 // minutes without a block before the doubling resets
+
+	// Free, keyless source of daily exchange rates (base USD); see https://www.exchangerate-api.com/docs/free.
+	ExchangeRateAPIURL string
 )
 
 func init() {
@@ -172,6 +175,8 @@ func init() {
 	RateLimitUserWrites = getEnvInt("RATE_LIMIT_USER_WRITES", RateLimitUserWrites)
 	RateLimitMaxBlock = getEnvInt("RATE_LIMIT_MAX_BLOCK", RateLimitMaxBlock)
 	RateLimitStrikesTTL = getEnvInt("RATE_LIMIT_STRIKES_TTL", RateLimitStrikesTTL)
+
+	ExchangeRateAPIURL = getEnvDefault("EXCHANGE_RATE_API_URL", "https://open.er-api.com/v6/latest/USD")
 
 	if TrustedProxyHops < 0 || RateLimitIP <= 0 || RateLimitUserReads <= 0 || RateLimitUserWrites <= 0 ||
 		RateLimitMaxBlock <= 0 || RateLimitStrikesTTL <= 0 {

@@ -8,6 +8,7 @@ import (
 	attachmentService "github.com/Fazann/notedbook-backend/internal/attachments/service"
 	boardHandler "github.com/Fazann/notedbook-backend/internal/boards/handler"
 	calendarHandler "github.com/Fazann/notedbook-backend/internal/calendar/handler"
+	exchangeHandler "github.com/Fazann/notedbook-backend/internal/exchange/handler"
 	expenseHandler "github.com/Fazann/notedbook-backend/internal/exspense/handler"
 	planHandler "github.com/Fazann/notedbook-backend/internal/plans/handler"
 	scheduleHandler "github.com/Fazann/notedbook-backend/internal/schedule/handler"
@@ -31,6 +32,7 @@ type handlers struct {
 	scheduleHandler   scheduleHandler.ScheduleHandler
 	boardHandler      boardHandler.BoardHandler
 	holidayHandler    calendarHandler.HolidayHandler
+	exchangeHandler   exchangeHandler.ExchangeRateHandler
 }
 
 func newHandlers() *handlers {
@@ -48,6 +50,7 @@ func newHandlers() *handlers {
 		scheduleHandler:   *scheduleHandler.NewScheduleHandler(),
 		boardHandler:      *boardHandler.NewBoardHandler(),
 		holidayHandler:    *calendarHandler.NewHolidayHandler(),
+		exchangeHandler:   *exchangeHandler.NewExchangeRateHandler(),
 	}
 }
 
@@ -140,6 +143,7 @@ func initAPIRoute(r *gin.Engine) {
 	schedule.DELETE("/activities/:id", h.scheduleHandler.DeleteActivity)
 
 	api.Group("/holidays", signedIn...).GET("", h.holidayHandler.List)
+	api.Group("/exchange-rates", signedIn...).GET("", h.exchangeHandler.List)
 
 	boards := api.Group("/boards", signedIn...)
 	boards.GET("", h.boardHandler.List)

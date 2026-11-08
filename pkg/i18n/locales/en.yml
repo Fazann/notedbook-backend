@@ -73,6 +73,10 @@ INVALID_OTP: "The code is incorrect or has expired."
 OTP_TOO_MANY_ATTEMPTS: "Too many incorrect codes. Please request a new code."
 INVALID_RESET_KEY: "This password reset request is invalid or has expired. Please start again."
 
+# Exchange rates
+UNSUPPORTED_CURRENCY: "The currency {currency} is not supported."
+EXCHANGE_RATES_UNAVAILABLE: "Exchange rates are not available right now. Please try again later."
+
 # Validation ({field} is the JSON field name, e.g. device.os)
 VALIDATION_FAILED: "One or more fields are invalid."
 FIELD_REQUIRED: "{field} is required."

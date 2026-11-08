@@ -70,6 +70,10 @@ INVALID_OTP: "លេខកូដមិនត្រឹមត្រូវ ឬផ�
 OTP_TOO_MANY_ATTEMPTS: "លេខកូដមិនត្រឹមត្រូវច្រើនដងពេក។ សូមស្នើសុំលេខកូដថ្មី។"
 INVALID_RESET_KEY: "សំណើកំណត់ពាក្យសម្ងាត់ឡើងវិញនេះមិនត្រឹមត្រូវ ឬផុតកំណត់ហើយ។ សូមចាប់ផ្ដើមម្ដងទៀត។"
 
+# Exchange rates
+UNSUPPORTED_CURRENCY: "មិនគាំទ្ររូបិយប័ណ្ណ {currency} ទេ។"
+EXCHANGE_RATES_UNAVAILABLE: "អត្រាប្ដូរប្រាក់មិនអាចប្រើបាននៅពេលនេះទេ។ សូមព្យាយាមម្ដងទៀតនៅពេលក្រោយ។"
+
 # Validation ({field} is the JSON field name, e.g. device.os)
 VALIDATION_FAILED: "វាលមួយ ឬច្រើនមិនត្រឹមត្រូវទេ។"
 FIELD_REQUIRED: "តម្រូវឱ្យមាន {field}។"

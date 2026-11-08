@@ -70,6 +70,10 @@ INVALID_OTP: "Kod tidak betul atau telah tamat tempoh."
 OTP_TOO_MANY_ATTEMPTS: "Terlalu banyak kod yang salah. Sila minta kod baharu."
 INVALID_RESET_KEY: "Permintaan set semula kata laluan ini tidak sah atau telah tamat tempoh. Sila mulakan semula."
 
+# Exchange rates
+UNSUPPORTED_CURRENCY: "Mata wang {currency} tidak disokong."
+EXCHANGE_RATES_UNAVAILABLE: "Kadar pertukaran tidak tersedia buat masa ini. Sila cuba lagi kemudian."
+
 # Validation ({field} is the JSON field name, e.g. device.os)
 VALIDATION_FAILED: "Satu atau lebih medan tidak sah."
 FIELD_REQUIRED: "{field} diperlukan."

@@ -101,6 +101,10 @@ const (
 	OTPTooManyAttempts Key = "OTP_TOO_MANY_ATTEMPTS"
 	// This password reset request is invalid or has expired. Please start again.
 	InvalidResetKey Key = "INVALID_RESET_KEY"
+	// The currency {currency} is not supported.
+	UnsupportedCurrency Key = "UNSUPPORTED_CURRENCY"
+	// Exchange rates are not available right now. Please try again later.
+	ExchangeRatesUnavailable Key = "EXCHANGE_RATES_UNAVAILABLE"
 	// One or more fields are invalid.
 	ValidationFailed Key = "VALIDATION_FAILED"
 	// {field} is required.
@@ -176,6 +180,8 @@ var AllKeys = []Key{
 	InvalidOTP,
 	OTPTooManyAttempts,
 	InvalidResetKey,
+	UnsupportedCurrency,
+	ExchangeRatesUnavailable,
 	ValidationFailed,
 	FieldRequired,
 	FieldInvalid,
